@@ -2,38 +2,43 @@
 @section('title', __('Sign in'))
 
 @section('content')
-<div class="auth-card">
-    <div class="ac-icon"><x-icon name="right-to-bracket" /></div>
-    <h2>{{ __('Welcome') }}</h2>
-    <p class="ac-sub">{{ __('Sign in to your Rahnama workspace, the platform administration or the regulatory module.') }}</p>
+<div class="rh-auth-card">
+    <span class="rh-auth-icon"><x-icon name="right-to-bracket" /></span>
+    <h2>{{ __('Sign in') }}</h2>
+    <p class="rh-auth-sub">{{ __('Sign in to your Rahnama workspace, the platform administration or the regulatory module.') }}</p>
 
-    <form method="POST" action="{{ route('login') }}" data-native>
+    @if ($errors->any())
+        <div class="rh-auth-error" role="alert"><x-icon name="triangle-exclamation" /> <span>{{ $errors->first() }}</span></div>
+    @endif
+
+    <form method="POST" action="{{ route('login') }}" data-native id="loginForm">
         @csrf
         <div class="mb-3">
             <label class="form-label" for="email">{{ __('Email address') }}</label>
-            <div class="auth-field"><x-icon name="envelope" set="regular" /><input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" autocomplete="username" placeholder="you@example.com" dir="ltr" required autofocus></div>
-            @error('email')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-            @enderror
+            <div class="auth-field"><x-icon name="envelope" set="regular" /><input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" autocomplete="username" inputmode="email" placeholder="you@example.com" dir="ltr" required autofocus></div>
         </div>
         <div class="mb-3">
             <label class="form-label" for="password">{{ __('Password') }}</label>
-            <div class="auth-field"><x-icon name="lock" /><input type="password" id="password" name="password" class="form-control @error('password') is-invalid @enderror" autocomplete="current-password" required><button type="button" class="field-eye" data-toggle-password aria-label="{{ __('Show password') }}"><x-icon name="eye" set="regular" /></button></div>
-            @error('password')
-                <div class="invalid-feedback d-block">{{ $message }}</div>
-            @enderror
+            <div class="auth-field"><x-icon name="lock" /><input type="password" id="password" name="password" class="form-control @error('password') is-invalid @enderror" autocomplete="current-password" dir="ltr" required><button type="button" class="field-eye" data-toggle-password aria-label="{{ __('Show password') }}"><x-icon name="eye" set="regular" /></button></div>
+            <div class="rh-auth-caps" id="capsNote" hidden><x-icon name="circle-info" /> {{ __('Caps Lock is on.') }}</div>
         </div>
-        <div class="form-check mb-4">
+        <label class="rh-auth-remember" for="remember">
             <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
-            <label class="form-check-label small" for="remember">{{ __('Keep me signed in') }}</label>
-        </div>
-        <button type="submit" class="btn btn-gradient btn-lg w-100">{{ __('Sign in') }} <x-icon name="arrow-right" class="ms-1" /></button>
+            <span>{{ __('Keep me signed in') }}</span>
+        </label>
+        <button type="submit" class="btn btn-primary btn-lg w-100 rh-auth-submit">{{ __('Sign in') }} <x-icon name="arrow-right" class="ms-1" /></button>
     </form>
-    <div class="auth-languages">
-        @foreach (config('app.locales') as $code => $language)
-            <a href="{{ route('locale', $code) }}" lang="{{ $code }}" class="{{ app()->getLocale() === $code ? 'active' : '' }}" data-native>{{ $language }}</a>
-        @endforeach
-    </div>
-    <p class="text-center small mt-3 mb-0"><a href="{{ route('home') }}" data-native>{{ __('Browse the property marketplace') }}</a></p>
+    <a class="rh-auth-back" href="{{ route('home') }}" data-native><x-icon name="store" /> {{ __('Browse the property marketplace') }}</a>
 </div>
+@push('scripts')
+<script>
+(() => {
+ const pass=document.getElementById('password'), note=document.getElementById('capsNote'), form=document.getElementById('loginForm');
+ const caps=e=>{ if(e.getModifierState) note.hidden=!e.getModifierState('CapsLock'); };
+ pass?.addEventListener('keyup',caps); pass?.addEventListener('keydown',caps); pass?.addEventListener('blur',()=>note.hidden=true);
+ // one press is enough: the button waits while the page answers
+ form?.addEventListener('submit',()=>{ const b=form.querySelector('.rh-auth-submit'); b.disabled=true; b.classList.add('is-busy'); });
+})();
+</script>
+@endpush
 @endsection
