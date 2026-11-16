@@ -96,6 +96,8 @@ Route::middleware(['auth','role:platform_admin'])->prefix('platform')->name('pla
  Route::post('/account',[Admin\SystemController::class,'saveAccount'])->name('account.save');
  Route::post('/account/password',[Admin\SystemController::class,'savePassword'])->name('account.password');
 });
+// the list of alerts of the top bar, fetched again every minute
+Route::get('/notifications',fn()=>view('partials.notifications'))->middleware('auth')->name('notifications');
 // back from "sign in as" to the administrator account
 Route::post('/impersonate/stop',[Admin\UserController::class,'stopImpersonating'])->middleware('auth')->name('impersonate.stop');
 Route::middleware(['auth','role:government_admin,inspector'])->prefix('government')->name('government.')->group(function(){Route::get('/',GovernmentDashboard::class)->name('dashboard');Route::get('/licenses',[RegistryController::class,'licenses'])->name('licenses');Route::post('/licenses',[RegistryController::class,'storeLicense'])->name('licenses.store');Route::get('/setta',[RegistryController::class,'setta'])->name('setta');Route::post('/setta',[RegistryController::class,'storeSettaBook'])->name('setta.store');Route::get('/inspections',[RegistryController::class,'inspections'])->name('inspections');Route::post('/inspections',[RegistryController::class,'storeInspection'])->name('inspections.store');Route::get('/violations',[RegistryController::class,'violations'])->name('violations');Route::post('/violations',[RegistryController::class,'storeViolation'])->name('violations.store');});

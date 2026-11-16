@@ -24,3 +24,4 @@
 <script defer src="{{ asset_v('js/app.js') }}"></script>
 <script defer src="{{ asset_v('assets/rahnuma-smart.js') }}"></script>
 <script defer src="{{ asset_v('assets/rahnuma-spa.js') }}"></script>
+<script defer src="{{ asset_v('assets/rahnuma-notify.js') }}"></script>

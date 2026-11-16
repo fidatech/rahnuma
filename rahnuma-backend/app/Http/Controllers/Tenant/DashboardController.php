@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Commission,Customer,Lead,Property,RentSchedule,Transaction,Visit};
+use App\Models\{Commission,Customer,Lead,Property,RentSchedule,Subscription,Transaction,Visit};
 
 class DashboardController extends Controller
 {
@@ -12,7 +12,20 @@ class DashboardController extends Controller
         $commissionAgg = Commission::selectRaw("COALESCE(SUM(CASE WHEN status != 'paid' THEN amount ELSE 0 END),0) as due_amount, SUM(CASE WHEN status != 'paid' THEN 1 ELSE 0 END) as due_count")->first();
         $rentAgg = RentSchedule::selectRaw("COALESCE(SUM(CASE WHEN status IN ('due','overdue') THEN amount ELSE 0 END),0) as due_amount, SUM(CASE WHEN status = 'overdue' THEN 1 ELSE 0 END) as overdue_count")->first();
 
+        // the paid period that runs now, or the trial when there is none
+        $agency = auth()->user()->agency;
+        $subscription = Subscription::with('plan:id,name')->where('status', 'active')
+            ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>', now()))->orderByDesc('ends_at')->first();
+        $until = $subscription?->ends_at ?? ($subscription ? null : $agency?->trial_ends_at);
+        $from = $subscription?->starts_at ?? $agency?->created_at;
+        $daysLeft = $until ? max(0, (int) ceil(now()->diffInHours($until, false) / 24)) : null;
+        $daysAll = ($until && $from) ? max(1, (int) round($from->diffInDays($until))) : null;
+
         return view('tenant.dashboard', [
+            'agency' => $agency,
+            'subscription' => $subscription,
+            'period' => ['until' => $until, 'left' => $daysLeft, 'all' => $daysAll, 'trial' => ! $subscription],
+
             'stats' => [
                 'properties' => (int) $propertyAgg->total,
                 'available_properties' => (int) $propertyAgg->available_count,

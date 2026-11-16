@@ -1,10 +1,37 @@
 @extends('layouts.workspace')
 @section('title', __('Dashboard'))
 @section('workspace')
-<x-page-header :title="__('Dashboard')" icon="gauge-high" :subtitle="__('Good day, :name', ['name' => auth()->user()->name]).' · '.__('Your property pipeline, customer activity and financial obligations in one view.')">
-    <a class="btn btn-outline-soft" href="{{ route('tenant.transactions.create') }}"><x-icon name="handshake" class="me-1" /> {{ __('New transaction') }}</a>
-    <a class="btn btn-primary" href="{{ route('tenant.properties.create') }}"><x-icon name="plus" class="me-1" /> {{ __('Add property') }}</a>
-</x-page-header>
+@php
+    $left = $period['left']; $all = $period['all'];
+    $share = ($left !== null && $all) ? max(3, min(100, (int) round($left / $all * 100))) : 100;
+    $low = $left !== null && $left <= 7;
+@endphp
+<section class="rh-welcome">
+    <div class="rh-welcome-text">
+        <small>{{ __('Good day, :name', ['name' => auth()->user()->name]) }}</small>
+        <h2>{{ __('Welcome, :office', ['office' => $agency?->name ?: config('app.name')]) }}</h2>
+        <p>{{ __('Your property pipeline, customer activity and financial obligations in one view.') }}</p>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-gold" href="{{ route('tenant.properties.create') }}"><x-icon name="plus" class="me-1" /> {{ __('Add property') }}</a>
+            <a class="btn btn-light" href="{{ route('tenant.transactions.create') }}"><x-icon name="handshake" class="me-1" /> {{ __('New transaction') }}</a>
+            <a class="btn btn-light" href="{{ route('tenant.promotions.index') }}"><x-icon name="bullhorn" class="me-1" /> {{ __('Sponsor a property') }}</a>
+        </div>
+    </div>
+    <div class="rh-welcome-sub {{ $low ? 'is-low' : '' }}">
+        <div><span>{{ $period['trial'] ? __('Trial period') : __('Subscription') }}</span><b>{{ $period['trial'] ? __('Trial') : ($subscription?->plan?->name ?: __('Active')) }}</b></div>
+        @if ($left === null)
+            <div class="rh-welcome-days"><span>{{ $subscription ? __('No end date') : __('No active subscription') }}</span></div>
+        @else
+            <div class="rh-welcome-days"><strong dir="ltr">{{ number_format($left) }}</strong><span>{{ $left > 0 ? __('days left') : __('Ended') }}</span></div>
+            <div class="rh-welcome-bar" role="img" aria-label="{{ $share }}%"><span style="width: {{ $share }}%"></span></div>
+        @endif
+        <div class="rh-welcome-facts">
+            @if ($subscription)<span>{{ __('Subscription total') }}: <b dir="ltr">{{ number_format((float) $subscription->amount) }} {{ $subscription->currency }}</b> · {{ enum_label($subscription->billing_cycle) }}</span>@endif
+            @if ($period['until'])<span>{{ __('Until') }}: <b dir="ltr">{{ $period['until']->format('Y-m-d') }}</b></span>@endif
+            @if ($all && $left !== null)<span>{{ __(':left of :all days', ['left' => number_format($left), 'all' => number_format($all)]) }}</span>@endif
+        </div>
+    </div>
+</section>
 
 <div class="row g-3 mb-3">
     <div class="col-12 col-sm-6 col-xl-3"><x-stat :label="__('Active inventory')" :value="number_format($stats['available_properties'])" icon="building" tone="blue" :note="__(':count published to marketplace', ['count' => number_format($stats['public_listings'])])" :href="route('tenant.properties.index')" /></div>

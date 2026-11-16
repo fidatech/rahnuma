@@ -41,3 +41,4 @@ is-active is-done is-submitting conditional-hidden collapsed
 #s-users #s-building #s-handshake #s-bullhorn #s-building-user #s-circle-arrow-down #s-circle-arrow-up #s-ban
 #s-eye-slash #s-store #s-star #s-user-plus #s-pen #s-user-shield #s-trash #s-key #s-rotate #s-broom #s-scale-balanced
 #s-paper-plane #s-file
+#s-bell #s-circle-xmark #s-clock #s-filter

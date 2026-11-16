@@ -11,8 +11,6 @@
         <x-icon name="magnifying-glass" /><span>{{ __('Search pages…') }}</span><span class="kbd-group"><kbd>Ctrl</kbd><kbd>K</kbd></span>
     </button>
 
-    <div class="topbar-brand" aria-hidden="true">{{ $shell === 'workspace' ? ($user->agency?->name ?: config('app.name')) : config('app.name') }}</div>
-
     <div class="topbar-right">
         <a class="topbar-market" href="{{ route('home') }}" data-native title="{{ __('Property marketplace') }}"><x-icon name="store" /><span>{{ __('Marketplace') }}</span></a>
         @if ($user->isPlatformAdmin())
@@ -22,6 +20,10 @@
                 <a class="topbar-market is-gold" href="{{ route('government.dashboard') }}" data-native title="{{ __('Regulatory panel') }}"><x-icon name="landmark" /><span>{{ __('Regulatory panel') }}</span></a>
             @endif
         @endif
+        <div class="dropdown">
+            <button class="topbar-icon" id="notifBell" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ __('Notifications') }}" aria-label="{{ __('Notifications') }}" data-url="{{ route('notifications') }}"><x-icon name="bell" /><span class="notif-count" hidden>0</span></button>
+            <div class="dropdown-menu dropdown-menu-end notif-menu" id="notifMenu">@include('partials.notifications')</div>
+        </div>
         @include('partials.language-menu')
 
         <button class="topbar-icon" type="button" data-theme-toggle title="{{ __('Light / dark mode') }}"><x-icon name="moon" /></button>
