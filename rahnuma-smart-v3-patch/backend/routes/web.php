@@ -1,0 +1,31 @@
+<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\{AuthController,MarketplaceController};
+use App\Http\Controllers\Tenant\{AccountingController,CooperationController,DashboardController as TenantDashboard,PropertyController,QuickCreateController,RequirementController,ResourceController,StaffController,TransactionController};
+use App\Http\Controllers\Platform\{AgencyController as PlatformAgencyController,DashboardController as PlatformDashboard};
+use App\Http\Controllers\Government\{DashboardController as GovernmentDashboard,RegistryController};
+Route::get('/',[MarketplaceController::class,'home'])->name('home');
+Route::get('/properties',[MarketplaceController::class,'properties'])->name('marketplace.properties');
+Route::get('/properties/{property}',[MarketplaceController::class,'property'])->name('marketplace.property');
+Route::post('/properties/{property}/inquiry',[MarketplaceController::class,'inquiry'])->name('marketplace.inquiry');
+Route::get('/rahnama/{agency:slug}',[MarketplaceController::class,'agency'])->name('marketplace.agency');
+Route::get('/nearby-rahnamas',[MarketplaceController::class,'nearby'])->name('marketplace.nearby');
+Route::get('/verify/{code}',[MarketplaceController::class,'verify'])->name('verify');
+Route::get('/login',[AuthController::class,'showLogin'])->name('login');Route::post('/login',[AuthController::class,'login']);Route::post('/logout',[AuthController::class,'logout'])->middleware('auth')->name('logout');Route::get('/locale/{locale}',[AuthController::class,'locale'])->name('locale');
+Route::middleware(['auth','tenant','tenant.access'])->prefix('workspace')->name('tenant.')->group(function(){
+ Route::get('/',TenantDashboard::class)->name('dashboard');
+ Route::resource('properties',PropertyController::class)->except('show');Route::get('properties/{property}/matches',[PropertyController::class,'matches'])->name('properties.matches');
+ Route::get('requirements',[RequirementController::class,'index'])->name('requirements.index');Route::post('requirements',[RequirementController::class,'store'])->name('requirements.store');Route::get('requirements/{requirement}/matches',[RequirementController::class,'matches'])->name('requirements.matches');
+ Route::resource('transactions',TransactionController::class)->only(['index','create','store','show']);
+ Route::post('quick-create/owner',[QuickCreateController::class,'owner'])->name('quick.owner');
+ Route::post('quick-create/customer',[QuickCreateController::class,'customer'])->name('quick.customer');
+ Route::post('quick-create/property',[QuickCreateController::class,'property'])->name('quick.property');
+ Route::get('accounting',[AccountingController::class,'index'])->name('accounting');Route::get('ledger',[AccountingController::class,'ledger'])->name('ledger');
+ Route::get('staff',[StaffController::class,'index'])->name('staff.index');Route::post('staff',[StaffController::class,'store'])->name('staff.store');Route::post('staff/{user}/toggle',[StaffController::class,'toggle'])->name('staff.toggle');
+ Route::get('cooperation',[CooperationController::class,'index'])->name('cooperation.index');Route::post('cooperation',[CooperationController::class,'store'])->name('cooperation.store');Route::post('cooperation/{id}/respond',[CooperationController::class,'respond'])->name('cooperation.respond');
+ Route::get('{resource}',[ResourceController::class,'index'])->whereIn('resource',['owners','customers','leads','visits','payments','expenses'])->name('resource.index');
+ Route::post('{resource}',[ResourceController::class,'store'])->whereIn('resource',['owners','customers','leads','visits','payments','expenses'])->name('resource.store');
+ Route::delete('{resource}/{id}',[ResourceController::class,'destroy'])->whereIn('resource',['owners','customers','leads','visits','payments','expenses'])->name('resource.destroy');
+});
+Route::middleware(['auth','role:platform_admin'])->prefix('platform')->name('platform.')->group(function(){Route::get('/',PlatformDashboard::class)->name('dashboard');Route::get('/agencies',[PlatformAgencyController::class,'index'])->name('agencies');Route::post('/agencies',[PlatformAgencyController::class,'store'])->name('agencies.store');Route::post('/agencies/{agency}/toggle',[PlatformAgencyController::class,'toggle'])->name('agencies.toggle');});
+Route::middleware(['auth','role:government_admin,inspector'])->prefix('government')->name('government.')->group(function(){Route::get('/',GovernmentDashboard::class)->name('dashboard');Route::get('/licenses',[RegistryController::class,'licenses'])->name('licenses');Route::post('/licenses',[RegistryController::class,'storeLicense'])->name('licenses.store');Route::get('/setta',[RegistryController::class,'setta'])->name('setta');Route::post('/setta',[RegistryController::class,'storeSettaBook'])->name('setta.store');Route::get('/inspections',[RegistryController::class,'inspections'])->name('inspections');Route::post('/inspections',[RegistryController::class,'storeInspection'])->name('inspections.store');Route::get('/violations',[RegistryController::class,'violations'])->name('violations');Route::post('/violations',[RegistryController::class,'storeViolation'])->name('violations.store');});

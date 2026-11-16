@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Controllers\Government;
+use App\Http\Controllers\Controller; use App\Models\{Agency,AgencyLicense,Inspection,SettaSerial,Transaction,Violation};
+class DashboardController extends Controller { public function __invoke(){return view('government.dashboard',['stats'=>['licensed'=>AgencyLicense::where('status','active')->count(),'agencies'=>Agency::count(),'setta_available'=>SettaSerial::withoutGlobalScopes()->where('status','available')->count(),'setta_used'=>SettaSerial::withoutGlobalScopes()->where('status','used')->count(),'transactions'=>Transaction::withoutGlobalScopes()->count(),'open_violations'=>Violation::withoutGlobalScopes()->where('status','open')->count()],'transactions'=>Transaction::withoutGlobalScopes()->latest()->limit(15)->get(),'inspections'=>Inspection::withoutGlobalScopes()->latest()->limit(10)->get()]);} }

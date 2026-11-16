@@ -1,0 +1,7 @@
+<?php
+namespace App\Services;
+use App\Models\CustomerRequirement; use App\Models\Property; use Illuminate\Support\Collection;
+class MatchingService {
+ public function customersForProperty(Property $p):Collection { return CustomerRequirement::with('customer')->where('is_active',1)->when($p->transaction_type,fn($q)=>$q->where('transaction_type',$p->transaction_type))->when($p->property_type,fn($q)=>$q->where('property_type',$p->property_type))->when($p->province_id,fn($q)=>$q->where(fn($x)=>$x->whereNull('province_id')->orWhere('province_id',$p->province_id)))->where(fn($q)=>$q->whereNull('max_price')->orWhere('max_price','>=',$p->price ?: $p->monthly_rent ?: 0))->where(fn($q)=>$q->whereNull('min_price')->orWhere('min_price','<=',$p->price ?: $p->monthly_rent ?: 0))->limit(100)->get(); }
+ public function propertiesForRequirement(CustomerRequirement $r):Collection { return Property::whereIn('status',['available','active'])->whereIn('visibility',['public','featured','private'])->where('transaction_type',$r->transaction_type)->where('property_type',$r->property_type)->when($r->province_id,fn($q)=>$q->where('province_id',$r->province_id))->when($r->district_id,fn($q)=>$q->where('district_id',$r->district_id))->when($r->area_id,fn($q)=>$q->where('area_id',$r->area_id))->when($r->max_price,fn($q)=>$q->whereRaw('COALESCE(price,monthly_rent,0) <= ?',[$r->max_price]))->when($r->min_price,fn($q)=>$q->whereRaw('COALESCE(price,monthly_rent,0) >= ?',[$r->min_price]))->limit(100)->get(); }
+}

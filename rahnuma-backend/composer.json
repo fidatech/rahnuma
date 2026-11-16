@@ -1,0 +1,28 @@
+{
+  "name": "fidatech/rahnuma",
+  "type": "project",
+  "description": "Afghanistan multi-tenant Rahnama ERP, marketplace and government-ready regulatory platform",
+  "require": {
+    "php": "^8.3",
+    "laravel/framework": "^13.17",
+    "laravel/sanctum": "^4.3",
+    "laravel/tinker": "^3.0",
+    "endroid/qr-code": "^6.0"
+  },
+  "require-dev": {
+    "fakerphp/faker": "^1.23",
+    "laravel/pint": "^1.27",
+    "mockery/mockery": "^1.6",
+    "nunomaduro/collision": "^8.6",
+    "phpunit/phpunit": "^12.5"
+  },
+  "autoload": {"psr-4": {"App\\": "app/", "Database\\Factories\\": "database/factories/", "Database\\Seeders\\": "database/seeders/"}},
+  "autoload-dev": {"psr-4": {"Tests\\": "tests/"}},
+  "scripts": {
+    "post-autoload-dump": ["Illuminate\\Foundation\\ComposerScripts::postAutoloadDump", "@php artisan package:discover --ansi"],
+    "post-create-project-cmd": ["@php artisan key:generate --ansi"]
+  },
+  "config": {"optimize-autoloader": true, "preferred-install": "dist", "sort-packages": true},
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

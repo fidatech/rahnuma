@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Controllers\Api;
+use App\Http\Controllers\Controller; use App\Models\{Agency,Inspection,SettaSerial,Transaction}; use Illuminate\Http\Request;
+class GovernmentController extends Controller { public function dashboard(){return ['agencies'=>Agency::count(),'setta_available'=>SettaSerial::withoutGlobalScopes()->where('status','available')->count(),'transactions'=>Transaction::withoutGlobalScopes()->count(),'inspections'=>Inspection::withoutGlobalScopes()->count()];} public function agency(int $id){return Agency::with(['users'])->findOrFail($id);} public function inspect(Request $r){$d=$r->validate(['agency_id'=>'required|integer','latitude'=>'nullable|numeric','longitude'=>'nullable|numeric','status'=>'required','summary'=>'nullable']);return Inspection::withoutGlobalScopes()->create($d+['inspector_user_id'=>$r->user()->id,'inspected_at'=>now()]);} }
