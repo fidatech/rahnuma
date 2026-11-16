@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api.dart';
+import '../l10n.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -23,39 +24,49 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Property details')),
+    appBar: AppBar(title: Text('Property details'.tr)),
     body: data == null
-      ? Center(child: Text(err ?? 'Loading...'))
+      ? Center(child: Text(err ?? 'Loading...'.tr))
       : ListView(padding: const EdgeInsets.fromLTRB(16, 18, 16, 30), children: [
           Container(
-            height: 230,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(22), gradient: const LinearGradient(colors: [Color(0xFFE7EBF6), Color(0xFFF8F9FC)])),
-            child: Center(child: Icon(Icons.apartment_rounded, size: 62, color: RahnumaTheme.cobalt.withOpacity(.45))),
+            height: 220,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), gradient: const LinearGradient(colors: [RahnumaTheme.primarySoft, Color(0xFFF6F8FC)], begin: Alignment.topLeft, end: Alignment.bottomRight)),
+            child: const Center(child: Icon(Icons.apartment_rounded, size: 62, color: RahnumaTheme.primary)),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           Row(children: [
-            Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5), decoration: BoxDecoration(color: const Color(0xFFEEF2FF), borderRadius: BorderRadius.circular(99)), child: Text(data!['transaction_type'] == 'bay_wafa' ? 'MORTGAGE / بیع وفا' : '${data!['transaction_type']}'.toUpperCase(), style: const TextStyle(fontSize: 9, color: RahnumaTheme.cobaltDark, fontWeight: FontWeight.w900))),
+            SoftBadge(data!['transaction_type'] == 'bay_wafa' ? 'Mortgage / Bay-e-Wafa'.tr : L.label('${data!['transaction_type'] ?? ''}')),
             const Spacer(),
-            Text('${data!['property_type'] ?? ''}', style: const TextStyle(color: RahnumaTheme.muted, fontSize: 11)),
+            Text(L.label('${data!['property_type'] ?? ''}'), style: const TextStyle(color: RahnumaTheme.muted, fontSize: 12)),
           ]),
           const SizedBox(height: 11),
-          Text(data!['title'] ?? '', style: const TextStyle(fontSize: 27, fontWeight: FontWeight.w900, letterSpacing: -.8, color: RahnumaTheme.ink)),
+          Text(data!['title'] ?? '', style: const TextStyle(fontSize: 24, height: 1.3, fontWeight: FontWeight.w800, color: RahnumaTheme.heading)),
           const SizedBox(height: 7),
-          Text(amount, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: RahnumaTheme.ink)),
+          Align(alignment: AlignmentDirectional.centerStart, child: Directionality(textDirection: TextDirection.ltr, child: Text(amount, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800, color: RahnumaTheme.heading)))),
           const SizedBox(height: 5),
           Text(data!['address'] ?? '', style: const TextStyle(color: RahnumaTheme.muted)),
           const SizedBox(height: 18),
           Row(children: [
-            Expanded(child: _Fact(label: 'Bedrooms', value: '${data!['bedrooms'] ?? '—'}')),
+            Expanded(child: _Fact(label: 'Bedrooms'.tr, value: '${data!['bedrooms'] ?? '—'}')),
             const SizedBox(width: 8),
-            Expanded(child: _Fact(label: 'Bathrooms', value: '${data!['bathrooms'] ?? '—'}')),
+            Expanded(child: _Fact(label: 'Bathrooms'.tr, value: '${data!['bathrooms'] ?? '—'}')),
             const SizedBox(width: 8),
-            Expanded(child: _Fact(label: 'Area', value: '${data!['total_area'] ?? '—'}')),
+            Expanded(child: _Fact(label: 'Area'.tr, value: '${data!['total_area'] ?? '—'}')),
           ]),
-          const SizedBox(height: 18),
-          Card(child: Padding(padding: const EdgeInsets.all(17), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const SectionLabel('Description'), const SizedBox(height: 8), Text(data!['description'] ?? 'No description available.', style: const TextStyle(height: 1.55, color: RahnumaTheme.ink2))]))),
+          const SizedBox(height: 16),
+          SoftCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [SectionLabel('Description'.tr), const SizedBox(height: 8), Text(data!['description'] ?? 'No description available.'.tr, style: const TextStyle(height: 1.6, color: RahnumaTheme.text))])),
           const SizedBox(height: 12),
-          Card(child: Padding(padding: const EdgeInsets.all(17), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const SectionLabel('Listing Rahnama'), const SizedBox(height: 9), Text(data!['agency']?['name'] ?? 'Rahnama', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: RahnumaTheme.ink)), const SizedBox(height: 4), Text(data!['agency']?['phone'] ?? '', style: const TextStyle(color: RahnumaTheme.muted))]))),
+          SoftCard(child: Row(children: [
+            const SoftIcon(Icons.business_center_rounded),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SectionLabel('Listing Rahnama'.tr),
+              const SizedBox(height: 4),
+              Text(data!['agency']?['name'] ?? 'Rahnama'.tr, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: RahnumaTheme.heading)),
+              const SizedBox(height: 2),
+              Directionality(textDirection: TextDirection.ltr, child: Text(data!['agency']?['phone'] ?? '', style: const TextStyle(color: RahnumaTheme.muted))),
+            ])),
+          ])),
         ]),
   );
 }
@@ -63,5 +74,5 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
 class _Fact extends StatelessWidget {
   final String label, value;
   const _Fact({required this.label, required this.value});
-  @override Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: RahnumaTheme.border)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: RahnumaTheme.ink)), const SizedBox(height: 3), Text(label, style: const TextStyle(fontSize: 9.5, color: RahnumaTheme.muted))]));
+  @override Widget build(BuildContext context) => Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFFF6F8FC), borderRadius: BorderRadius.circular(10)), child: Column(children: [Text(label, style: const TextStyle(fontSize: 11, color: RahnumaTheme.muted)), const SizedBox(height: 3), Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: RahnumaTheme.heading))]));
 }

@@ -27,7 +27,7 @@ class QuickCreateController extends Controller
 
         return response()->json([
             'created' => !$existing,
-            'message' => $existing ? 'An existing owner matched this phone/Tazkira and was selected.' : 'Owner created and selected.',
+            'message' => $existing ? __('An existing owner matched this phone/Tazkira and was selected.') : __('Owner created and selected.'),
             'item' => [
                 'id' => $owner->id,
                 'text' => $owner->name,
@@ -58,7 +58,7 @@ class QuickCreateController extends Controller
 
         return response()->json([
             'created' => !$existing,
-            'message' => $existing ? 'An existing customer matched this phone/Tazkira and was selected.' : 'Customer created and selected.',
+            'message' => $existing ? __('An existing customer matched this phone/Tazkira and was selected.') : __('Customer created and selected.'),
             'item' => [
                 'id' => $customer->id,
                 'text' => $customer->name,
@@ -84,7 +84,7 @@ class QuickCreateController extends Controller
         ]);
 
         if (!empty($data['owner_id']) && !Owner::find($data['owner_id'])) {
-            return response()->json(['message' => 'The selected owner does not belong to this Rahnama.'], 422);
+            return response()->json(['message' => __('The selected owner does not belong to this Rahnama.')], 422);
         }
 
         $property = Property::create($data + [
@@ -104,7 +104,7 @@ class QuickCreateController extends Controller
 
         return response()->json([
             'created' => true,
-            'message' => 'Property created and selected. You can complete its full details later.',
+            'message' => __('Property created and selected. You can complete its full details later.'),
             'item' => $this->propertyPayload($property),
         ]);
     }

@@ -1,6 +1,36 @@
-@extends('layouts.app')
-@section('title','Inspections — Regulatory')
-@section('content')
-<div class="page-header"><div class="page-header__copy"><div class="eyebrow">Field supervision</div><h1>Inspections</h1><p class="page-subtitle">Record field inspections, findings and agency compliance activity.</p></div><div class="page-actions"><a class="btn secondary" href="{{ route('government.dashboard') }}">Dashboard</a></div></div>
-<div class="grid"><div class="g8 card"><div class="card-header"><div><h2 class="section-title">Inspection history</h2><div class="card-subtitle">Chronological supervision records</div></div></div><div class="table-wrap"><table><thead><tr><th>Agency</th><th>Date</th><th>Status</th><th>Summary</th></tr></thead><tbody>@foreach($items as $i)<tr><td class="table-title">{{ $i->agency?->name }}</td><td>{{ $i->inspected_at }}</td><td><span class="badge neutral">{{ $i->status }}</span></td><td style="white-space:normal;min-width:240px">{{ $i->summary }}</td></tr>@endforeach</tbody></table></div><div class="pagination">{{ $items->links() }}</div></div><div class="g4 card"><div class="eyebrow">Field record</div><h3>Add inspection</h3><form method="post">@csrf<div class="field"><label>Agency</label><select name="agency_id">@foreach($agencies as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach</select></div><div class="field"><label>Date & time</label><input type="datetime-local" name="inspected_at" required></div><div class="field"><label>Status</label><input name="status" value="completed"></div><div class="field"><label>Inspection summary</label><textarea name="summary"></textarea></div><button class="btn block">Save inspection</button></form></div></div>
+@extends('layouts.workspace')
+@section('title', __('Inspections'))
+@section('workspace')
+<x-page-header :title="__('Inspections')" icon="clipboard-check" :crumbs="[[__('Regulatory'), route('government.dashboard')], [__('Inspections')]]" :subtitle="__('Record field inspections, findings and agency compliance activity.')" />
+
+<div class="row g-3">
+    <div class="col-12 col-xl-8">
+        <div class="card">
+            <div class="card-header"><div><h5 class="card-title mb-0">{{ __('Inspection history') }}</h5><div class="small text-muted">{{ __('Chronological supervision records') }}</div></div></div>
+            <div class="card-body">
+                @if($items->isEmpty())
+                    <x-workspace.empty icon="clipboard-check" />
+                @else
+                <table class="table table-hover w-100">
+                    <thead><tr><th>{{ __('Agency') }}</th><th>{{ __('Date') }}</th><th>{{ __('Status') }}</th><th>{{ __('Summary') }}</th></tr></thead>
+                    <tbody>@foreach($items as $i)<tr><td><strong class="text-heading">{{ $i->agency?->name }}</strong></td><td class="text-nowrap" dir="ltr">{{ $i->inspected_at }}</td><td><span class="badge-soft {{ status_tone($i->status) }}">{{ enum_label($i->status) }}</span></td><td>{{ $i->summary }}</td></tr>@endforeach</tbody>
+                </table>
+                {{ $items->links('partials.pagination') }}
+                @endif
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <form class="card" method="post" action="{{ route('government.inspections.store') }}">@csrf
+            <div class="card-header"><div class="set-head"><span class="set-icon"><x-icon name="plus" /></span><div><h5>{{ __('Add inspection') }}</h5><small>{{ __('Field record') }}</small></div></div></div>
+            <div class="card-body d-grid gap-3">
+                <div><label class="form-label">{{ __('Agency') }}</label><select class="form-select" name="agency_id">@foreach($agencies as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach</select></div>
+                <div><label class="form-label">{{ __('Date & time') }} <span class="req">*</span></label><input class="form-control" type="datetime-local" name="inspected_at" required></div>
+                <div><label class="form-label">{{ __('Status') }}</label><input class="form-control" name="status" value="completed" dir="ltr"></div>
+                <div><label class="form-label">{{ __('Inspection summary') }}</label><textarea class="form-control" name="summary" rows="3"></textarea></div>
+            </div>
+            <div class="card-footer d-flex justify-content-end"><button class="btn btn-primary"><x-icon name="check" class="me-1" /> {{ __('Save inspection') }}</button></div>
+        </form>
+    </div>
+</div>
 @endsection

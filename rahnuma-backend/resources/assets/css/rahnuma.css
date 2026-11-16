@@ -1,0 +1,153 @@
+/*
+ | Rahnuma additions to the fida-admin template (the template of Fida Sarafi).
+ | Only what the template does not already have: the public marketplace pages, the property
+ | card, and a few small helpers of the workspace. Colours, radius and shadows come from the
+ | variables of the template, so the light and the dark mode both work, and only logical
+ | properties are used, so the same rules serve English, Dari and Pashto.
+ */
+
+/* ------------------------------------------------------------------ helpers */
+.conditional-hidden { display: none !important; }
+.sr-only-select { position: absolute !important; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.rh-anchor { scroll-margin-top: calc(var(--topbar-h) + 16px); }
+.rh-sticky { position: sticky; top: calc(var(--topbar-h) + 16px); }
+.rh-narrow { max-width: 760px; margin-inline: auto; }
+.set-icon { font-weight: 800; }
+.sc-icon.icon-soft { width: 44px; height: 44px; flex: 0 0 44px; font-size: 17px; }
+.sc-icon.icon-soft.rh-choice-icon { width: 38px; height: 38px; flex: 0 0 38px; font-size: 15px; }
+.page-header.is-inline .page-header-sub { margin: 0; }
+.auth-languages a { padding: 5px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--muted); font-size: 13px; font-weight: 600; text-decoration: none; }
+.auth-languages a:hover, .auth-languages a.active { border-color: var(--primary); color: var(--primary); background: var(--primary-soft); }
+.modal .select2-container { width: 100% !important; }
+.select2-container--default .select2-selection--single .select2-selection__arrow { inset-inline-end: 8px; }
+[dir="rtl"] .select2-container--default .select2-selection--single .select2-selection__arrow { right: auto; }
+.modal-header .set-head { min-width: 0; }
+.modal-footer .me-auto { max-width: 55%; }
+.dropdown-item .fi { width: 1.4em; text-align: center; margin-inline-end: 6px; }
+.table tr.cursor-pointer { cursor: pointer; }
+.card-footer:empty { display: none; }
+form.is-submitting { opacity: .65; pointer-events: none; }
+
+/* arrows point the other way in a right-to-left language */
+[dir="rtl"] .fi svg:has(use[href$="#s-arrow-right"]),
+[dir="rtl"] .fi svg:has(use[href$="#s-chevron-right"]),
+[dir="rtl"] .fi svg:has(use[href$="#s-right-to-bracket"]),
+[dir="rtl"] .fi svg:has(use[href$="#s-right-from-bracket"]),
+[dir="rtl"] .fi svg:has(use[href$="#s-arrow-up-right-from-square"]),
+[dir="rtl"] .fi svg:has(use[href$="#s-paper-plane"]) { transform: scaleX(-1); }
+
+/* thin bar at the top while the next page is fetched (rahnuma-spa.js) */
+.spa-progress { position: fixed; top: 0; inset-inline: 0; height: 3px; z-index: 2100; pointer-events: none; opacity: 0; transition: opacity .2s; }
+.spa-progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--brand-from), var(--brand-to)); }
+.spa-progress.is-active { opacity: 1; }
+.spa-progress.is-active span { width: 82%; transition: width 6s cubic-bezier(.1, .7, .1, 1); }
+.spa-progress.is-done { opacity: 1; }
+.spa-progress.is-done span { width: 100%; transition: width .18s; }
+
+/* ------------------------------------------------------------ property card */
+.rh-prop { overflow: hidden; }
+.rh-prop-link { display: flex; flex-direction: column; height: 100%; color: inherit; text-decoration: none; }
+.rh-prop-link .card-body { flex: 1; }
+.rh-prop-media { position: relative; display: block; aspect-ratio: 16 / 10; background: var(--hover); overflow: hidden; cursor: pointer; }
+.rh-prop-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
+.rh-prop:hover .rh-prop-media img { transform: scale(1.04); }
+.rh-prop-empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; color: var(--primary); font-size: 34px; background: linear-gradient(135deg, var(--primary-soft), var(--hover)); }
+.rh-prop-empty small { font-size: 12px; font-weight: 700; color: var(--muted); }
+.rh-prop-badges { position: absolute; top: 10px; inset-inline: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.rh-prop-badges .badge-soft { background-color: var(--card); box-shadow: var(--shadow-sm); }
+.rh-prop-title { font-size: 15.5px; font-weight: 800; line-height: 1.35; margin: 0 0 4px; color: var(--heading); }
+.rh-prop-title a { color: inherit; text-decoration: none; }
+.rh-prop-title a:hover { color: var(--primary); }
+.rh-prop-price { font-size: 20px; font-weight: 800; color: var(--heading); font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+.rh-prop-price small { font-size: 12.5px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+[dir="rtl"] .rh-prop-price { text-align: right; }
+.rh-prop-facts { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.rh-prop-facts b { color: var(--heading); }
+.rh-prop-facts .fi { color: var(--primary); opacity: .8; }
+.rh-prop .card-footer { background: transparent; }
+
+.rh-quick-hero { position: relative; aspect-ratio: 16 / 7; background: var(--hover); overflow: hidden; }
+.rh-quick-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rh-verify-code { font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: 1.5px; text-align: center; padding: 12px; border-radius: 12px; border: 1.5px dashed var(--border-strong); background: var(--hover); color: var(--heading); overflow-wrap: anywhere; }
+
+/* covers of a Rahnama office */
+.profile-cover { background-size: cover; background-position: center; }
+.rh-cover-sm { height: 96px; border-radius: 0; }
+.rh-cover-logo { margin-top: -46px; position: relative; z-index: 1; box-shadow: 0 0 0 4px var(--card); }
+.brand-cover-preview .brand-cover-action { position: absolute; z-index: 2; bottom: 14px; inset-inline-end: 14px; }
+.brand-logo-uploader, .profile-avatar-uploader { overflow: hidden; }
+.brand-logo-uploader img, .profile-avatar-uploader img { width: 100%; height: 100%; object-fit: cover; }
+
+/* --------------------------------------------------------------- public site */
+.public-body { background: var(--bg); min-height: 100vh; }
+.site-header { position: sticky; top: 0; z-index: 1030; background: color-mix(in srgb, var(--card) 90%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+.site-header-inner { max-width: 1320px; margin-inline: auto; padding: 11px 20px; display: flex; align-items: center; gap: 18px; }
+.site-header .brand-link { text-decoration: none; }
+.site-header .brand-text { font-size: 19px; line-height: 1.1; }
+.site-header .brand-text small { display: block; margin: 2px 0 0; font-size: 10.5px; font-weight: 600; color: var(--muted); letter-spacing: 0; vertical-align: baseline; }
+.site-nav { display: flex; gap: 4px; margin-inline-start: 10px; }
+.site-nav a { padding: 8px 14px; border-radius: 9px; font-size: 13.5px; font-weight: 700; color: var(--text); text-decoration: none; white-space: nowrap; }
+.site-nav a:hover { background: var(--hover); color: var(--heading); }
+.site-nav a.active { background: var(--primary-soft); color: var(--primary); }
+.site-main { max-width: 1320px; margin-inline: auto; padding: 24px 20px 40px; min-height: calc(100vh - 150px); }
+.site-footer { max-width: 1320px; margin-inline: auto; padding: 18px 20px 28px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--border); }
+
+.rh-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 28px; align-items: center; padding: 44px; margin-bottom: 24px; border-radius: 20px; color: #fff; background: radial-gradient(900px 500px at 105% -10%, rgba(255, 255, 255, .18), transparent 60%), linear-gradient(120deg, var(--brand-from), var(--primary-600) 55%, var(--brand-to)); }
+.rh-hero::before { content: ''; position: absolute; width: 340px; height: 340px; border-radius: 50%; border: 60px solid rgba(255, 255, 255, .06); inset-inline-end: -120px; bottom: -170px; }
+.rh-hero-text, .rh-hero-side { position: relative; z-index: 1; min-width: 0; }
+.rh-hero-kicker { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: rgba(255, 255, 255, .16); font-size: 12.5px; font-weight: 700; }
+.rh-hero h1 { color: #fff; font-size: clamp(28px, 4vw, 44px); font-weight: 800; line-height: 1.15; letter-spacing: -.8px; margin: 16px 0 10px; }
+[dir="rtl"] .rh-hero h1 { letter-spacing: 0; line-height: 1.45; }
+.rh-hero h1 span { opacity: .82; }
+.rh-hero p { color: rgba(255, 255, 255, .88); max-width: 620px; font-size: 15px; }
+.rh-search { margin: 22px 0 0; padding: 16px; color: var(--text); border: 0; box-shadow: var(--shadow-lg); }
+.rh-search .form-label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); }
+[dir="rtl"] .rh-search .form-label { letter-spacing: 0; }
+.rh-hero-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; font-size: 13px; color: rgba(255, 255, 255, .8); }
+.rh-hero-chips a { padding: 5px 13px; border-radius: 999px; background: rgba(255, 255, 255, .14); color: #fff; font-weight: 700; text-decoration: none; }
+.rh-hero-chips a:hover { background: rgba(255, 255, 255, .26); }
+.rh-hero-side { display: grid; gap: 12px; }
+.rh-hero-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+.rh-hero-card .sc-icon { width: 46px; height: 46px; flex: 0 0 46px; font-size: 18px; }
+.rh-hero-card strong { display: block; color: var(--heading); }
+.rh-hero-card small { color: var(--muted); }
+
+.rh-section { margin-bottom: 30px; }
+.rh-section-head { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.rh-section-head h2 { font-size: 22px; font-weight: 800; margin: 2px 0; letter-spacing: -.3px; }
+[dir="rtl"] .rh-section-head h2 { letter-spacing: 0; }
+.rh-section-head p { margin: 0; color: var(--muted); font-size: 13.5px; }
+.rh-kicker { font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--primary); }
+[dir="rtl"] .rh-kicker { letter-spacing: 0; }
+
+.rh-gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-auto-rows: 170px; gap: 10px; margin-bottom: 24px; border-radius: 18px; overflow: hidden; }
+.rh-gallery img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rh-gallery img.is-primary { grid-row: span 2; }
+.rh-gallery.is-single { grid-template-columns: 1fr; grid-auto-rows: 360px; position: relative; }
+.rh-gallery.is-single img.is-primary { grid-row: auto; }
+.rh-gallery .rh-prop-empty { position: static; grid-column: 1 / -1; height: 100%; }
+
+@media (max-width: 1199.98px) {
+    .rh-sticky { position: static; }
+}
+@media (max-width: 991.98px) {
+    .rh-hero { grid-template-columns: minmax(0, 1fr); padding: 28px 22px; }
+    .rh-hero-side { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .rh-hero-card { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 767.98px) {
+    .site-header-inner { flex-wrap: wrap; gap: 10px; padding: 10px 14px; }
+    .site-header .brand-text small { display: none; }
+    .site-nav { order: 3; flex: 0 0 100%; margin: 0; overflow-x: auto; }
+    .site-main { padding: 16px 14px 32px; }
+    .rh-hero { border-radius: 16px; }
+    .rh-hero-side { grid-template-columns: minmax(0, 1fr); }
+    .rh-hero-card { flex-direction: row; align-items: center; }
+    .rh-gallery { grid-template-columns: 1fr 1fr; grid-auto-rows: 120px; }
+    .rh-gallery img.is-primary { grid-column: 1 / -1; grid-row: auto; height: 220px; }
+    .rh-gallery.is-single { grid-auto-rows: 240px; }
+    .modal-footer .me-auto { max-width: none; flex: 0 0 100%; }
+}
+@media print {
+    .site-header, .site-footer, .spa-progress { display: none !important; }
+}

@@ -1,5 +1,39 @@
-@extends('layouts.app')
-@section('title','Sign in — Rahnuma')
+@extends('layouts.auth')
+@section('title', __('Sign in'))
+
 @section('content')
-<div class="login-shell"><div class="card login-card"><div class="login-mark">R</div><div class="eyebrow">Secure access</div><h1 style="font-size:27px;margin-bottom:8px">Sign in to Rahnuma</h1><p class="muted" style="margin-top:0;margin-bottom:22px">Access your Rahnama workspace, platform administration, or regulatory module.</p><form method="post">@csrf<div class="field"><label>Email address</label><input type="email" name="email" required autofocus value="{{ old('email') }}" placeholder="you@example.com"></div><div class="field"><label>Password</label><input type="password" name="password" required placeholder="••••••••"></div><label style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;margin:5px 0 18px"><input style="width:auto" type="checkbox" name="remember" value="1"> Keep me signed in</label><button class="btn block">Sign in</button></form></div></div>
+<div class="auth-card">
+    <div class="ac-icon"><x-icon name="right-to-bracket" /></div>
+    <h2>{{ __('Welcome') }}</h2>
+    <p class="ac-sub">{{ __('Sign in to your Rahnama workspace, the platform administration or the regulatory module.') }}</p>
+
+    <form method="POST" action="{{ route('login') }}" data-native>
+        @csrf
+        <div class="mb-3">
+            <label class="form-label" for="email">{{ __('Email address') }}</label>
+            <div class="auth-field"><x-icon name="envelope" set="regular" /><input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control @error('email') is-invalid @enderror" autocomplete="username" placeholder="you@example.com" dir="ltr" required autofocus></div>
+            @error('email')
+                <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="mb-3">
+            <label class="form-label" for="password">{{ __('Password') }}</label>
+            <div class="auth-field"><x-icon name="lock" /><input type="password" id="password" name="password" class="form-control @error('password') is-invalid @enderror" autocomplete="current-password" required><button type="button" class="field-eye" data-toggle-password aria-label="{{ __('Show password') }}"><x-icon name="eye" set="regular" /></button></div>
+            @error('password')
+                <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+        </div>
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
+            <label class="form-check-label small" for="remember">{{ __('Keep me signed in') }}</label>
+        </div>
+        <button type="submit" class="btn btn-gradient btn-lg w-100">{{ __('Sign in') }} <x-icon name="arrow-right" class="ms-1" /></button>
+    </form>
+    <div class="auth-languages">
+        @foreach (config('app.locales') as $code => $language)
+            <a href="{{ route('locale', $code) }}" lang="{{ $code }}" class="{{ app()->getLocale() === $code ? 'active' : '' }}" data-native>{{ $language }}</a>
+        @endforeach
+    </div>
+    <p class="text-center small mt-3 mb-0"><a href="{{ route('home') }}" data-native>{{ __('Browse the property marketplace') }}</a></p>
+</div>
 @endsection

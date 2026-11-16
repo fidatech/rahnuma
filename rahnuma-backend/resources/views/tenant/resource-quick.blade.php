@@ -1,69 +1,71 @@
 @php
     $title = match($resource) {
         'owners','customers' => $item->name,
-        'leads' => $item->customer?->name ?: 'Lead #'.$item->id,
-        'visits' => $item->customer?->name ?: 'Visit #'.$item->id,
-        'payments' => ucfirst(str_replace('_',' ',$item->category ?: 'Payment')),
-        'expenses' => ucfirst(str_replace('_',' ',$item->category ?: 'Expense')),
-        default => 'Record #'.$item->id,
+        'leads' => $item->customer?->name ?: __('Lead').' #'.$item->id,
+        'visits' => $item->customer?->name ?: __('Visit').' #'.$item->id,
+        'payments' => enum_label($item->category, __('Payment')),
+        'expenses' => enum_label($item->category, __('Expense')),
+        default => '#'.$item->id,
     };
+    $kind = ['owners'=>'Owner','customers'=>'Customer','leads'=>'Lead','visits'=>'Visit','payments'=>'Payment','expenses'=>'Expense'][$resource] ?? 'Record';
 @endphp
-<div class="quick-view-content quick-view-content--resource">
-    <div class="quick-view-body">
-        <div class="quick-view-eyebrow">{{ strtoupper(str_replace('_',' ',$resource)) }} · #{{ $item->id }}</div>
-        <h2>{{ $title }}</h2>
+<div class="modal-body">
+    <span class="badge-code mb-2">{{ __($kind) }} · #{{ $item->id }}</span>
+    <h4 class="mb-3">{{ $title }}</h4>
 
-        @if(in_array($resource,['owners','customers']))
-            <div class="quick-view-person quick-view-person--large">
-                <div class="mini-avatar">{{ strtoupper(mb_substr($item->name ?: '?',0,1)) }}</div>
-                <div><b>{{ $item->name }}</b><small>{{ $item->phone ?: 'No phone' }} @if($item->whatsapp) · WhatsApp {{ $item->whatsapp }} @endif</small></div>
-            </div>
-            <div class="quick-view-facts quick-view-facts--2">
-                <div><span>Tazkira</span><b>{{ $item->tazkira_no ?: '—' }}</b></div>
-                <div><span>Email</span><b>{{ $item->email ?: '—' }}</b></div>
-                <div><span>Address</span><b>{{ $item->address ?: '—' }}</b></div>
-                <div><span>Added</span><b>{{ $item->created_at?->format('d M Y') ?: '—' }}</b></div>
-            </div>
-            @if($item->notes)<div class="quick-view-section"><span>Notes</span><p>{{ $item->notes }}</p></div>@endif
-        @elseif($resource==='leads')
-            <div class="quick-view-facts quick-view-facts--2">
-                <div><span>Stage</span><b>{{ ucfirst(str_replace('_',' ',$item->status ?: 'new')) }}</b></div>
-                <div><span>Source</span><b>{{ ucfirst(str_replace('_',' ',$item->source ?: 'direct')) }}</b></div>
-                <div><span>Property</span><b>{{ $item->property?->code ? $item->property->code.' · '.$item->property->title : '—' }}</b></div>
-                <div><span>Agent</span><b>{{ $item->assignedUser?->name ?: '—' }}</b></div>
-                <div><span>Follow-up</span><b>{{ $item->next_follow_up_at?->format('d M Y · H:i') ?: 'Not scheduled' }}</b></div>
-                <div><span>Phone</span><b>{{ $item->customer?->phone ?: '—' }}</b></div>
-            </div>
-            @if($item->notes)<div class="quick-view-section"><span>Notes</span><p>{{ $item->notes }}</p></div>@endif
-        @elseif($resource==='visits')
-            <div class="quick-view-facts quick-view-facts--2">
-                <div><span>Schedule</span><b>{{ $item->scheduled_at?->format('d M Y · H:i') ?: '—' }}</b></div>
-                <div><span>Status</span><b>{{ ucfirst(str_replace('_',' ',$item->status ?: 'scheduled')) }}</b></div>
-                <div><span>Property</span><b>{{ $item->property?->code ? $item->property->code.' · '.$item->property->title : '—' }}</b></div>
-                <div><span>Agent</span><b>{{ $item->assignedUser?->name ?: '—' }}</b></div>
-            </div>
-            @if($item->outcome)<div class="quick-view-section"><span>Outcome</span><p>{{ $item->outcome }}</p></div>@endif
-            @if($item->notes)<div class="quick-view-section"><span>Notes</span><p>{{ $item->notes }}</p></div>@endif
-        @elseif($resource==='payments')
-            <div class="quick-view-price">{{ number_format((float)$item->amount,2) }} <small>{{ $item->currency }}</small></div>
-            <div class="quick-view-facts quick-view-facts--2">
-                <div><span>Direction</span><b>{{ $item->direction==='out'?'Money out':'Money in' }}</b></div>
-                <div><span>Method</span><b>{{ ucfirst($item->method ?: 'cash') }}</b></div>
-                <div><span>Reference</span><b>{{ $item->reference_no ?: '—' }}</b></div>
-                <div><span>Date</span><b>{{ $item->paid_at?->format('d M Y · H:i') ?: $item->created_at?->format('d M Y') }}</b></div>
-                <div><span>Party</span><b>{{ $item->customer?->name ?: ($item->owner?->name ?: '—') }}</b></div>
-                <div><span>Transaction</span><b>{{ $item->transaction?->reference_no ?: '—' }}</b></div>
-            </div>
-            @if($item->notes)<div class="quick-view-section"><span>Notes</span><p>{{ $item->notes }}</p></div>@endif
-        @else
-            <div class="quick-view-price">{{ number_format((float)$item->amount,2) }} <small>{{ $item->currency }}</small></div>
-            <div class="quick-view-facts quick-view-facts--2">
-                <div><span>Category</span><b>{{ ucfirst(str_replace('_',' ',$item->category ?: 'Other')) }}</b></div>
-                <div><span>Method</span><b>{{ ucfirst($item->method ?: 'cash') }}</b></div>
-                <div><span>Reference</span><b>{{ $item->reference_no ?: '—' }}</b></div>
-                <div><span>Date</span><b>{{ $item->expense_date?->format('d M Y') ?: $item->created_at?->format('d M Y') }}</b></div>
-            </div>
-            @if($item->description)<div class="quick-view-section"><span>Description</span><p>{{ $item->description }}</p></div>@endif
-        @endif
-    </div>
+    @if(in_array($resource,['owners','customers']))
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="avatar avatar-lg {{ $resource==='owners' ? 'avatar-soft-primary' : 'avatar-soft-purple' }}">{{ initial($item->name) }}</span>
+            <div><strong class="d-block text-heading">{{ $item->name }}</strong><span class="text-muted" dir="ltr">{{ $item->phone ?: __('No phone') }}@if($item->whatsapp) · WhatsApp {{ $item->whatsapp }}@endif</span></div>
+        </div>
+        <dl class="facts">
+            <div><dt>{{ __('Tazkira') }}</dt><dd dir="ltr">{{ $item->tazkira_no ?: '—' }}</dd></div>
+            <div><dt>{{ __('Email') }}</dt><dd dir="ltr">{{ $item->email ?: '—' }}</dd></div>
+            <div><dt>{{ __('Address') }}</dt><dd>{{ $item->address ?: '—' }}</dd></div>
+            <div><dt>{{ __('Added') }}</dt><dd dir="ltr">{{ $item->created_at?->format('d M Y') ?: '—' }}</dd></div>
+        </dl>
+        @if($item->notes)<h6 class="text-muted small text-uppercase mt-3 mb-1">{{ __('Notes') }}</h6><p class="mb-0">{{ $item->notes }}</p>@endif
+    @elseif($resource==='leads')
+        <dl class="facts">
+            <div><dt>{{ __('Stage') }}</dt><dd><span class="badge-soft {{ status_tone($item->status ?: 'new') }}">{{ enum_label($item->status ?: 'new') }}</span></dd></div>
+            <div><dt>{{ __('Source') }}</dt><dd>{{ enum_label($item->source ?: 'other') }}</dd></div>
+            <div><dt>{{ __('Property') }}</dt><dd>{{ $item->property?->code ? $item->property->code.' · '.$item->property->title : '—' }}</dd></div>
+            <div><dt>{{ __('Agent') }}</dt><dd>{{ $item->assignedUser?->name ?: '—' }}</dd></div>
+            <div><dt>{{ __('Follow-up') }}</dt><dd dir="ltr">{{ $item->next_follow_up_at?->format('d M Y · H:i') ?: '—' }}</dd></div>
+            <div><dt>{{ __('Phone') }}</dt><dd dir="ltr">{{ $item->customer?->phone ?: '—' }}</dd></div>
+        </dl>
+        @if($item->notes)<h6 class="text-muted small text-uppercase mt-3 mb-1">{{ __('Notes') }}</h6><p class="mb-0">{{ $item->notes }}</p>@endif
+    @elseif($resource==='visits')
+        <dl class="facts">
+            <div><dt>{{ __('Schedule') }}</dt><dd dir="ltr">{{ $item->scheduled_at?->format('d M Y · H:i') ?: '—' }}</dd></div>
+            <div><dt>{{ __('Status') }}</dt><dd><span class="badge-soft {{ status_tone($item->status ?: 'scheduled') }}">{{ enum_label($item->status ?: 'scheduled') }}</span></dd></div>
+            <div><dt>{{ __('Property') }}</dt><dd>{{ $item->property?->code ? $item->property->code.' · '.$item->property->title : '—' }}</dd></div>
+            <div><dt>{{ __('Agent') }}</dt><dd>{{ $item->assignedUser?->name ?: '—' }}</dd></div>
+        </dl>
+        @if($item->outcome)<h6 class="text-muted small text-uppercase mt-3 mb-1">{{ __('Outcome') }}</h6><p class="mb-0">{{ $item->outcome }}</p>@endif
+        @if($item->notes)<h6 class="text-muted small text-uppercase mt-3 mb-1">{{ __('Notes') }}</h6><p class="mb-0">{{ $item->notes }}</p>@endif
+    @elseif($resource==='payments')
+        <div class="display-6 fw-bold text-heading mb-3" dir="ltr">{{ number_format((float)$item->amount,2) }} <small class="fs-6 text-muted">{{ $item->currency }}</small></div>
+        <dl class="facts">
+            <div><dt>{{ __('Direction') }}</dt><dd>{{ $item->direction==='out' ? __('Money out') : __('Money in') }}</dd></div>
+            <div><dt>{{ __('Method') }}</dt><dd>{{ enum_label($item->method ?: 'cash') }}</dd></div>
+            <div><dt>{{ __('Reference') }}</dt><dd dir="ltr">{{ $item->reference_no ?: '—' }}</dd></div>
+            <div><dt>{{ __('Date') }}</dt><dd dir="ltr">{{ $item->paid_at?->format('d M Y · H:i') ?: $item->created_at?->format('d M Y') }}</dd></div>
+            <div><dt>{{ __('Party') }}</dt><dd>{{ $item->customer?->name ?: ($item->owner?->name ?: '—') }}</dd></div>
+            <div><dt>{{ __('Transaction') }}</dt><dd dir="ltr">{{ $item->transaction?->reference_no ?: '—' }}</dd></div>
+        </dl>
+        @if($item->notes)<h6 class="text-muted small text-uppercase mt-3 mb-1">{{ __('Notes') }}</h6><p class="mb-0">{{ $item->notes }}</p>@endif
+    @else
+        <div class="display-6 fw-bold text-heading mb-3" dir="ltr">{{ number_format((float)$item->amount,2) }} <small class="fs-6 text-muted">{{ $item->currency }}</small></div>
+        <dl class="facts">
+            <div><dt>{{ __('Category') }}</dt><dd>{{ enum_label($item->category ?: 'other') }}</dd></div>
+            <div><dt>{{ __('Method') }}</dt><dd>{{ enum_label($item->method ?: 'cash') }}</dd></div>
+            <div><dt>{{ __('Reference') }}</dt><dd dir="ltr">{{ $item->reference_no ?: '—' }}</dd></div>
+            <div><dt>{{ __('Date') }}</dt><dd dir="ltr">{{ $item->expense_date?->format('d M Y') ?: $item->created_at?->format('d M Y') }}</dd></div>
+        </dl>
+        @if($item->description)<h6 class="text-muted small text-uppercase mt-3 mb-1">{{ __('Description') }}</h6><p class="mb-0">{{ $item->description }}</p>@endif
+    @endif
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
 </div>

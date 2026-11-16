@@ -72,10 +72,10 @@ class TransactionController extends Controller
         $buyerCustomerId = $data['buyer_customer_id'] ?? null;
 
         if (!$sellerOwnerId || !Owner::find($sellerOwnerId)) {
-            throw ValidationException::withMessages(['seller_owner_id' => 'Select or create the property owner / landlord before completing this transaction.']);
+            throw ValidationException::withMessages(['seller_owner_id' => __('Select or create the property owner / landlord before completing this transaction.')]);
         }
         if (!$buyerCustomerId || !Customer::find($buyerCustomerId)) {
-            throw ValidationException::withMessages(['buyer_customer_id' => 'Select or create the buyer / tenant before completing this transaction.']);
+            throw ValidationException::withMessages(['buyer_customer_id' => __('Select or create the buyer / tenant before completing this transaction.')]);
         }
 
         $data['seller_owner_id'] = $sellerOwnerId;
@@ -101,7 +101,7 @@ class TransactionController extends Controller
             $base = $type === 'rent' ? ($data['monthly_rent'] ?? 0) : ($data['amount'] ?? 0);
             if ($base <= 0) {
                 throw ValidationException::withMessages([
-                    $type === 'rent' ? 'monthly_rent' : 'amount' => 'Transaction value must be greater than zero.',
+                    $type === 'rent' ? 'monthly_rent' : 'amount' => __('Transaction value must be greater than zero.'),
                 ]);
             }
 
@@ -116,10 +116,10 @@ class TransactionController extends Controller
                     ->first();
 
                 if ($setta && $setta->status !== 'available') {
-                    throw ValidationException::withMessages(['setta_number' => 'This tracked Setta serial has already been used or is unavailable.']);
+                    throw ValidationException::withMessages(['setta_number' => __('This tracked Setta serial has already been used or is unavailable.')]);
                 }
                 if (config('rahnuma.government_mode') && !$setta) {
-                    throw ValidationException::withMessages(['setta_number' => 'Government mode requires a Setta serial assigned to this Rahnama.']);
+                    throw ValidationException::withMessages(['setta_number' => __('Government mode requires a Setta serial assigned to this Rahnama.')]);
                 }
             }
 
@@ -181,7 +181,7 @@ class TransactionController extends Controller
                 ], 'transaction', $transaction->id);
             }
 
-            return redirect()->route('tenant.transactions.show', $transaction)->with('success', 'Transaction completed and verification record assigned.');
+            return redirect()->route('tenant.transactions.show', $transaction)->with('success', __('Transaction completed and verification record assigned.'));
         });
     }
 

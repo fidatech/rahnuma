@@ -127,23 +127,23 @@ class ResourceController extends Controller
             }
         }
 
-        return back()->with('success', Str::headline(Str::singular($resource)).' created.');
+        return back()->with('success', __(':name created.', ['name' => __(Str::headline(Str::singular($resource)))]));
     }
 
     public function destroy(string $resource, int $id)
     {
         [$model] = $this->cfg($resource);
         $model::findOrFail($id)->delete();
-        return back()->with('success', 'Deleted.');
+        return back()->with('success', __('Deleted.'));
     }
 
     private function ensureTenantReferences(array $data): void
     {
-        if (!empty($data['customer_id']) && !Customer::find($data['customer_id'])) abort(422, 'Invalid customer.');
-        if (!empty($data['owner_id']) && !Owner::find($data['owner_id'])) abort(422, 'Invalid owner.');
-        if (!empty($data['property_id']) && !Property::find($data['property_id'])) abort(422, 'Invalid property.');
-        if (!empty($data['transaction_id']) && !Transaction::find($data['transaction_id'])) abort(422, 'Invalid transaction.');
-        if (!empty($data['assigned_user_id']) && !User::where('agency_id',auth()->user()->agency_id)->find($data['assigned_user_id'])) abort(422, 'Invalid team member.');
+        if (!empty($data['customer_id']) && !Customer::find($data['customer_id'])) abort(422, __('Invalid customer.'));
+        if (!empty($data['owner_id']) && !Owner::find($data['owner_id'])) abort(422, __('Invalid owner.'));
+        if (!empty($data['property_id']) && !Property::find($data['property_id'])) abort(422, __('Invalid property.'));
+        if (!empty($data['transaction_id']) && !Transaction::find($data['transaction_id'])) abort(422, __('Invalid transaction.'));
+        if (!empty($data['assigned_user_id']) && !User::where('agency_id',auth()->user()->agency_id)->find($data['assigned_user_id'])) abort(422, __('Invalid team member.'));
     }
 
     private function stats(string $resource, string $model): array

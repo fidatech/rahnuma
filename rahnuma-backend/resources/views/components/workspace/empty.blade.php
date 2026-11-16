@@ -1,6 +1,6 @@
-@props(['title'=>'Nothing here yet','description'=>'Create the first record to get started.'])
-<div class="smart-empty">
-    <div class="smart-empty__icon">◇</div>
-    <h3>{{ $title }}</h3>
-    <p>{{ $description }}</p>
+@props(['title' => null, 'description' => null, 'icon' => 'folder-open'])
+<div class="empty-state">
+    <div class="es-icon"><x-icon :name="$icon" /></div>
+    <h3>{{ $title ?? __('Nothing here yet') }}</h3>
+    <p>{{ $description ?? __('Create the first record to get started.') }}</p>
 </div>

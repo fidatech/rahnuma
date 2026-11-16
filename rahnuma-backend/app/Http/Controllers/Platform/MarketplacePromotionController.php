@@ -32,20 +32,20 @@ class MarketplacePromotionController extends Controller
             'sponsored_until' => now()->addDays($data['days'] ?? 30),
         ]);
         \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v8');
-        return back()->with('success', 'Property is now sponsored on the marketplace.');
+        return back()->with('success', __('Property is now sponsored on the marketplace.'));
     }
 
     public function unsponsor(Property $property)
     {
         $property->update(['is_sponsored' => false, 'sponsored_until' => null]);
         \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v8');
-        return back()->with('success', 'Sponsored placement removed.');
+        return back()->with('success', __('Sponsored placement removed.'));
     }
 
     public function toggleAgency(Agency $agency)
     {
         $agency->update(['marketplace_featured' => !$agency->marketplace_featured]);
         \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v8');
-        return back()->with('success', $agency->marketplace_featured ? 'Rahnama is now featured on the marketplace.' : 'Featured Rahnama placement removed.');
+        return back()->with('success', $agency->marketplace_featured ? __('Rahnama is now featured on the marketplace.') : __('Featured Rahnama placement removed.'));
     }
 }

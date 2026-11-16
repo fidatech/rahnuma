@@ -1,6 +1,37 @@
-@extends('layouts.app')
-@section('title','Agency Licenses — Regulatory')
-@section('content')
-<div class="page-header"><div class="page-header__copy"><div class="eyebrow">Regulatory registry</div><h1>Agency Licenses</h1><p class="page-subtitle">Track Rahnama license holders, validity and regulatory status.</p></div><div class="page-actions"><a class="btn secondary" href="{{ route('government.dashboard') }}">Dashboard</a></div></div>
-<div class="grid"><div class="g8 card"><div class="card-header"><div><h2 class="section-title">License register</h2><div class="card-subtitle">Official-style regulatory records in demonstration mode</div></div></div><div class="table-wrap"><table><thead><tr><th>Agency</th><th>License</th><th>Holder</th><th>Expiry</th><th>Status</th></tr></thead><tbody>@foreach($licenses as $l)<tr><td class="table-title">{{ $l->agency?->name }}</td><td>{{ $l->license_number }}</td><td>{{ $l->holder_name }}</td><td>{{ $l->expiry_date ?: '—' }}</td><td><span class="badge {{ $l->status==='active'?'success':($l->status==='suspended'?'danger':'neutral') }}">{{ $l->status }}</span></td></tr>@endforeach</tbody></table></div><div class="pagination">{{ $licenses->links() }}</div></div><div class="g4 card"><div class="eyebrow">Registry action</div><h3>Record license</h3><form method="post">@csrf<div class="field"><label>Agency</label><select name="agency_id">@foreach($agencies as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach</select></div><div class="field"><label>License number</label><input name="license_number" required></div><div class="field"><label>License holder</label><input name="holder_name" required></div><div class="grid" style="gap:8px"><div class="g6 field"><label>Issue date</label><input type="date" name="issue_date"></div><div class="g6 field"><label>Expiry</label><input type="date" name="expiry_date"></div></div><div class="field"><label>Status</label><select name="status"><option>pending</option><option>active</option><option>expired</option><option>suspended</option><option>cancelled</option></select></div><button class="btn block">Save license record</button></form></div></div>
+@extends('layouts.workspace')
+@section('title', __('Agency Licenses'))
+@section('workspace')
+<x-page-header :title="__('Agency Licenses')" icon="id-badge" :crumbs="[[__('Regulatory'), route('government.dashboard')], [__('Agency Licenses')]]" :subtitle="__('Track Rahnama license holders, validity and regulatory status.')" />
+
+<div class="row g-3">
+    <div class="col-12 col-xl-8">
+        <div class="card">
+            <div class="card-header"><div><h5 class="card-title mb-0">{{ __('License register') }}</h5><div class="small text-muted">{{ __('Official-style regulatory records in demonstration mode') }}</div></div></div>
+            <div class="card-body">
+                @if($licenses->isEmpty())
+                    <x-workspace.empty icon="id-badge" />
+                @else
+                <table class="table table-hover w-100">
+                    <thead><tr><th>{{ __('Agency') }}</th><th>{{ __('License') }}</th><th>{{ __('Holder') }}</th><th>{{ __('Expiry') }}</th><th>{{ __('Status') }}</th></tr></thead>
+                    <tbody>@foreach($licenses as $l)<tr><td><strong class="text-heading">{{ $l->agency?->name }}</strong></td><td dir="ltr">{{ $l->license_number }}</td><td>{{ $l->holder_name }}</td><td dir="ltr">{{ $l->expiry_date ?: '—' }}</td><td><span class="badge-soft {{ status_tone($l->status) }}">{{ enum_label($l->status) }}</span></td></tr>@endforeach</tbody>
+                </table>
+                {{ $licenses->links('partials.pagination') }}
+                @endif
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <form class="card" method="post" action="{{ route('government.licenses.store') }}">@csrf
+            <div class="card-header"><div class="set-head"><span class="set-icon"><x-icon name="plus" /></span><div><h5>{{ __('Record license') }}</h5><small>{{ __('Registry action') }}</small></div></div></div>
+            <div class="card-body d-grid gap-3">
+                <div><label class="form-label">{{ __('Agency') }}</label><select class="form-select" name="agency_id">@foreach($agencies as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach</select></div>
+                <div><label class="form-label">{{ __('License number') }} <span class="req">*</span></label><input class="form-control" name="license_number" required dir="ltr"></div>
+                <div><label class="form-label">{{ __('License holder') }} <span class="req">*</span></label><input class="form-control" name="holder_name" required></div>
+                <div class="row g-2"><div class="col-6"><label class="form-label">{{ __('Issue date') }}</label><input class="form-control" type="date" name="issue_date"></div><div class="col-6"><label class="form-label">{{ __('Expiry') }}</label><input class="form-control" type="date" name="expiry_date"></div></div>
+                <div><label class="form-label">{{ __('Status') }}</label><select class="form-select" name="status">@foreach(['pending','active','expired','suspended','cancelled'] as $s)<option value="{{ $s }}">{{ enum_label($s) }}</option>@endforeach</select></div>
+            </div>
+            <div class="card-footer d-flex justify-content-end"><button class="btn btn-primary"><x-icon name="check" class="me-1" /> {{ __('Save license record') }}</button></div>
+        </form>
+    </div>
+</div>
 @endsection

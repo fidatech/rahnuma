@@ -51,7 +51,7 @@ class PropertyController extends Controller
         $agency = auth()->user()->agency;
         $limit = $agency->plan?->property_limit;
         if ($limit && Property::count() >= $limit) {
-            return back()->withErrors(['plan' => 'Your plan property limit has been reached.'])->withInput();
+            return back()->withErrors(['plan' => __('Your plan property limit has been reached.')])->withInput();
         }
 
         $data = $this->validated($request);
@@ -66,7 +66,7 @@ class PropertyController extends Controller
         $this->media($request, $property);
         Cache::forget('rahnuma:marketplace:home:v8');
 
-        return redirect()->route('tenant.properties.edit', $property)->with('success', 'Property created. Its primary owner is linked to this property record.');
+        return redirect()->route('tenant.properties.edit', $property)->with('success', __('Property created. Its primary owner is linked to this property record.'));
     }
 
     public function edit(Property $property)
@@ -87,14 +87,14 @@ class PropertyController extends Controller
         $this->media($request, $property);
         Cache::forget('rahnuma:marketplace:home:v8');
 
-        return back()->with('success', 'Property updated.');
+        return back()->with('success', __('Property updated.'));
     }
 
     public function destroy(Property $property)
     {
         $property->delete();
         Cache::forget('rahnuma:marketplace:home:v8');
-        return back()->with('success', 'Property deleted.');
+        return back()->with('success', __('Property deleted.'));
     }
 
     public function quick(Property $property)
@@ -167,7 +167,7 @@ class PropertyController extends Controller
 
     private function ensureOwnerBelongsToTenant(?int $ownerId): void
     {
-        if ($ownerId && !Owner::find($ownerId)) abort(422, 'The selected owner does not belong to this Rahnama.');
+        if ($ownerId && !Owner::find($ownerId)) abort(422, __('The selected owner does not belong to this Rahnama.'));
     }
 
     private function syncPrimaryOwner(Property $property): void

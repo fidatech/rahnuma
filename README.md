@@ -1,4 +1,27 @@
-# Rahnuma Platform Source — V2 Professional Redesign
+# Rahnuma Platform Source
+
+## V9: fida-admin template, Dari and Pashto
+
+The web application and the phone app were rebuilt on the fida-admin template of Fida Technologies
+(the template of Fida Sarafi): sidebar and top bar shell, page search, light and dark mode, toasts,
+pop-up forms, tables that become cards on phones, and a tab bar on phones. Everything is available in
+English, Dari and Pashto, with right-to-left layout. Routes, controllers, database and API are unchanged.
+See `DESIGN_SYSTEM.md`.
+
+After pulling this version on a server:
+
+```bash
+cd rahnuma-backend
+php artisan view:clear
+php artisan optimize:clear
+```
+
+No migration and no Composer or Node step is needed. Change the look in `resources/assets` and run
+`php tools/build-assets.php`. Add or correct a translation in `lang/fa.json` and `lang/ps.json`.
+
+The notes below describe the earlier V2 to V8 releases.
+
+## V2 Professional Redesign
 
 This package contains the multi-tenant Rahnama ERP, Afghanistan property marketplace, government-ready regulatory module and Flutter app, with a redesigned premium product UI.
 

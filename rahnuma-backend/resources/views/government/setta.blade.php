@@ -1,6 +1,36 @@
-@extends('layouts.app')
-@section('title','Setta Inventory — Regulatory')
-@section('content')
-<div class="page-header"><div class="page-header__copy"><div class="eyebrow">Setta control</div><h1>Setta Inventory</h1><p class="page-subtitle">Issue and reconcile Setta books, ranges and transaction categories.</p></div><div class="page-actions"><a class="btn secondary" href="{{ route('government.dashboard') }}">Dashboard</a></div></div>
-<div class="grid"><div class="g8 card"><div class="card-header"><div><h2 class="section-title">Issued books</h2><div class="card-subtitle">Tracked inventory by Rahnama office</div></div></div><div class="table-wrap"><table><thead><tr><th>Agency</th><th>Book</th><th>Type</th><th>Serial range</th><th>Status</th></tr></thead><tbody>@foreach($books as $b)<tr><td class="table-title">{{ $b->agency?->name }}</td><td>{{ $b->book_no }}</td><td>{{ $b->type==='bay_wafa'?'Mortgage / بیع وفا':ucfirst($b->type) }}</td><td class="amount">{{ $b->range_start }} – {{ $b->range_end }}</td><td><span class="badge neutral">{{ $b->status }}</span></td></tr>@endforeach</tbody></table></div><div class="pagination">{{ $books->links() }}</div></div><div class="g4 card"><div class="eyebrow">Inventory issue</div><h3>Issue Setta book</h3><form method="post">@csrf<div class="field"><label>Agency</label><select name="agency_id">@foreach($agencies as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach</select></div><div class="field"><label>Book number</label><input name="book_no" required></div><div class="field"><label>Transaction type</label><select name="type"><option value="sale">Sale</option><option value="rent">Rent</option><option value="bay_wafa">Mortgage / بیع وفا</option></select></div><div class="grid" style="gap:8px"><div class="g6 field"><label>Range start</label><input type="number" name="range_start" required></div><div class="g6 field"><label>Range end</label><input type="number" name="range_end" required></div></div><button class="btn block">Issue inventory</button></form></div></div>
+@extends('layouts.workspace')
+@section('title', __('Setta Inventory'))
+@section('workspace')
+<x-page-header :title="__('Setta Inventory')" icon="book" :crumbs="[[__('Regulatory'), route('government.dashboard')], [__('Setta Inventory')]]" :subtitle="__('Issue and reconcile Setta books, ranges and transaction categories.')" />
+
+<div class="row g-3">
+    <div class="col-12 col-xl-8">
+        <div class="card">
+            <div class="card-header"><div><h5 class="card-title mb-0">{{ __('Issued books') }}</h5><div class="small text-muted">{{ __('Tracked inventory by Rahnama office') }}</div></div></div>
+            <div class="card-body">
+                @if($books->isEmpty())
+                    <x-workspace.empty icon="book" />
+                @else
+                <table class="table table-hover w-100">
+                    <thead><tr><th>{{ __('Agency') }}</th><th>{{ __('Book') }}</th><th>{{ __('Type') }}</th><th>{{ __('Serial range') }}</th><th>{{ __('Status') }}</th></tr></thead>
+                    <tbody>@foreach($books as $b)<tr><td><strong class="text-heading">{{ $b->agency?->name }}</strong></td><td dir="ltr">{{ $b->book_no }}</td><td>{{ deal_label($b->type, true) }}</td><td class="text-nowrap" dir="ltr">{{ $b->range_start }} – {{ $b->range_end }}</td><td><span class="badge-soft {{ status_tone($b->status) }}">{{ enum_label($b->status) }}</span></td></tr>@endforeach</tbody>
+                </table>
+                {{ $books->links('partials.pagination') }}
+                @endif
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-4">
+        <form class="card" method="post" action="{{ route('government.setta.store') }}">@csrf
+            <div class="card-header"><div class="set-head"><span class="set-icon"><x-icon name="plus" /></span><div><h5>{{ __('Issue Setta book') }}</h5><small>{{ __('Inventory issue') }}</small></div></div></div>
+            <div class="card-body d-grid gap-3">
+                <div><label class="form-label">{{ __('Agency') }}</label><select class="form-select" name="agency_id">@foreach($agencies as $a)<option value="{{ $a->id }}">{{ $a->name }}</option>@endforeach</select></div>
+                <div><label class="form-label">{{ __('Book number') }} <span class="req">*</span></label><input class="form-control" name="book_no" required dir="ltr"></div>
+                <div><label class="form-label">{{ __('Transaction type') }}</label><select class="form-select" name="type">@foreach(['sale','rent','bay_wafa'] as $s)<option value="{{ $s }}">{{ deal_label($s, true) }}</option>@endforeach</select></div>
+                <div class="row g-2"><div class="col-6"><label class="form-label">{{ __('Range start') }} <span class="req">*</span></label><input class="form-control" type="number" name="range_start" required dir="ltr"></div><div class="col-6"><label class="form-label">{{ __('Range end') }} <span class="req">*</span></label><input class="form-control" type="number" name="range_end" required dir="ltr"></div></div>
+            </div>
+            <div class="card-footer d-flex justify-content-end"><button class="btn btn-primary"><x-icon name="check" class="me-1" /> {{ __('Issue inventory') }}</button></div>
+        </form>
+    </div>
+</div>
 @endsection

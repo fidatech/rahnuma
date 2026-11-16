@@ -1,148 +1,160 @@
 @extends('layouts.workspace')
-@section('workspace')
 @php
 $meta = [
- 'owners'=>['kicker'=>'Property relationships','title'=>'Owners & Landlords','subtitle'=>'People behind your inventory, ownership records and landlord relationships.','create'=>'Add owner','search'=>'Search name, phone, Tazkira or address','noun'=>'owner'],
- 'customers'=>['kicker'=>'Customer intelligence','title'=>'Customers','subtitle'=>'Buyers, tenants and prospects with a clean history of every interaction.','create'=>'Add customer','search'=>'Search name, phone, source or address','noun'=>'customer'],
- 'leads'=>['kicker'=>'Sales pipeline','title'=>'Lead Pipeline','subtitle'=>'Move every inquiry from first contact to visit, negotiation and closed deal.','create'=>'Capture lead','search'=>'Search source, status or notes','noun'=>'lead'],
- 'visits'=>['kicker'=>'Field operations','title'=>'Visits & Follow-ups','subtitle'=>'A clear agenda of property visits, outcomes and next actions.','create'=>'Schedule visit','search'=>'Search visit status, outcome or notes','noun'=>'visit'],
- 'payments'=>['kicker'=>'Money movement','title'=>'Payments','subtitle'=>'Track commission, rent, deposits and other money movements connected to real deals.','create'=>'Record payment','search'=>'Search reference, category, method or notes','noun'=>'payment'],
- 'expenses'=>['kicker'=>'Office spending','title'=>'Expenses','subtitle'=>'Record operating costs without turning daily bookkeeping into accounting work.','create'=>'Add expense','search'=>'Search category, reference or description','noun'=>'expense'],
+ 'owners'=>['icon'=>'user-tie','title'=>'Owners & Landlords','subtitle'=>'People behind your inventory, ownership records and landlord relationships.','create'=>'Add owner','search'=>'Search name, phone, Tazkira or address','noun'=>'owner','preview'=>'Owner preview','confirm'=>'Remove this owner record?','empty'=>'No owners yet'],
+ 'customers'=>['icon'=>'users','title'=>'Customers','subtitle'=>'Buyers, tenants and prospects with a clean history of every interaction.','create'=>'Add customer','search'=>'Search name, phone, source or address','noun'=>'customer','preview'=>'Customer preview','confirm'=>'Remove this customer record?','empty'=>'No customers yet'],
+ 'leads'=>['icon'=>'filter','title'=>'Lead Pipeline','subtitle'=>'Move every inquiry from first contact to visit, negotiation and closed deal.','create'=>'Capture lead','search'=>'Search source, status or notes','noun'=>'lead','preview'=>'Lead preview','confirm'=>'Remove this lead?','empty'=>'No leads yet'],
+ 'visits'=>['icon'=>'calendar-check','title'=>'Visits & Follow-ups','subtitle'=>'A clear agenda of property visits, outcomes and next actions.','create'=>'Schedule visit','search'=>'Search visit status, outcome or notes','noun'=>'visit','preview'=>'Visit preview','confirm'=>'Remove this visit?','empty'=>'No visits yet'],
+ 'payments'=>['icon'=>'money-bill-wave','title'=>'Payments','subtitle'=>'Track commission, rent, deposits and other money movements connected to real deals.','create'=>'Record payment','search'=>'Search reference, category, method or notes','noun'=>'payment','preview'=>'Payment preview','confirm'=>'Remove this payment?','empty'=>'No payments yet'],
+ 'expenses'=>['icon'=>'receipt','title'=>'Expenses','subtitle'=>'Record operating costs without turning daily bookkeeping into accounting work.','create'=>'Add expense','search'=>'Search category, reference or description','noun'=>'expense','preview'=>'Expense preview','confirm'=>'Remove this expense?','empty'=>'No expenses yet'],
 ][$resource];
 $relationMeta=['customer_id'=>['resource'=>'customer','modal'=>'quick-customer-modal','label'=>'New customer'],'owner_id'=>['resource'=>'owner','modal'=>'quick-owner-modal','label'=>'New owner'],'property_id'=>['resource'=>'property','modal'=>'quick-property-modal','label'=>'New property']];
-$labels=['customer_id'=>'Customer','owner_id'=>'Owner / landlord','property_id'=>'Property','transaction_id'=>'Transaction','assigned_user_id'=>'Assigned agent','next_follow_up_at'=>'Next follow-up','scheduled_at'=>'Visit date & time','exchange_rate_to_afn'=>'Exchange rate to AFN','reference_no'=>'Reference','paid_at'=>'Payment date & time','expense_date'=>'Expense date','tazkira_no'=>'Tazkira number'];
+$labels=['name'=>'Full name','phone'=>'Phone','whatsapp'=>'WhatsApp','email'=>'Email','address'=>'Address','source'=>'Source','notes'=>'Notes','status'=>'Status','outcome'=>'Outcome','rejection_reason'=>'Rejection reason','direction'=>'Direction','category'=>'Category','amount'=>'Amount','currency'=>'Currency','method'=>'Method','description'=>'Description','customer_id'=>'Customer','owner_id'=>'Owner / landlord','property_id'=>'Property','transaction_id'=>'Transaction','assigned_user_id'=>'Assigned agent','next_follow_up_at'=>'Next follow-up','scheduled_at'=>'Visit date & time','exchange_rate_to_afn'=>'Exchange rate to AFN','reference_no'=>'Reference','paid_at'=>'Payment date & time','expense_date'=>'Expense date','tazkira_no'=>'Tazkira number'];
+$hasStatusFilter=in_array($resource,['leads','visits']);
+$filtered=request()->hasAny(['q','status']) && (filled(request('q')) || filled(request('status')));
+$quick=fn($item)=>route('tenant.resource.quick',[$resource,$item->id]);
+$option=fn(string $field,$value,$empty='—')=>filled($value) ? __($selectOptions[$field][$value] ?? ucfirst(str_replace(['_','-'],' ',$value))) : $empty;
 @endphp
+@section('title', __($meta['title']))
+@section('workspace')
+<x-page-header :title="__($meta['title'])" :icon="$meta['icon']" :subtitle="__($meta['subtitle'])">
+    <button class="btn btn-primary" type="button" data-modal-open="resource-create-drawer"><x-icon name="plus" class="me-1" /> {{ __($meta['create']) }}</button>
+</x-page-header>
 
-<div class="smart-page-head">
-    <div>
-        <div class="eyebrow">{{ $meta['kicker'] }}</div>
-        <h1>{{ $meta['title'] }}</h1>
-        <p>{{ $meta['subtitle'] }}</p>
-    </div>
-    <button class="btn" type="button" data-modal-open="resource-create-drawer">{{ $meta['create'] }}</button>
-</div>
-
-<div class="pulse-strip">
-    <div class="pulse-item"><span>Total records</span><strong>{{ number_format($stats['total']) }}</strong><small>All-time</small></div>
-    <div class="pulse-item"><span>Added this month</span><strong>{{ number_format($stats['month']) }}</strong><small>{{ now()->format('F') }}</small></div>
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3"><x-stat :label="__('Total records')" :value="number_format($stats['total'])" :icon="$meta['icon']" tone="blue" :note="__('All-time')" /></div>
+    <div class="col-6 col-xl-3"><x-stat :label="__('Added this month')" :value="number_format($stats['month'])" icon="calendar-plus" tone="violet" /></div>
     @if($stats['attention'] !== null)
-        <div class="pulse-item pulse-item--warm"><span>{{ $resource==='owners'?'Without property':'Needs attention' }}</span><strong>{{ number_format($stats['attention']) }}</strong><small>{{ $resource==='leads'?'Open pipeline':($resource==='visits'?'Scheduled':'Relationship gap') }}</small></div>
-        <div class="pulse-item"><span>{{ $resource==='owners'?'With property':'Completed' }}</span><strong>{{ number_format($stats['done']) }}</strong><small>{{ $resource==='leads'?'Won':($resource==='visits'?'Visits done':'Linked inventory') }}</small></div>
-    @else
-        <div class="pulse-item pulse-item--quiet"><span>Workspace</span><strong>Live</strong><small>Tenant-isolated records</small></div>
+        <div class="col-6 col-xl-3"><x-stat :label="$resource==='owners' ? __('Without property') : __('Needs attention')" :value="number_format($stats['attention'])" icon="triangle-exclamation" tone="amber" :note="$resource==='leads' ? __('Open pipeline') : ($resource==='visits' ? __('Scheduled') : __('Relationship gap'))" /></div>
+        <div class="col-6 col-xl-3"><x-stat :label="$resource==='owners' ? __('With property') : __('Completed')" :value="number_format($stats['done'])" icon="circle-check" tone="green" :note="$resource==='leads' ? __('Won') : ($resource==='visits' ? __('Visits done') : __('Linked inventory'))" /></div>
     @endif
 </div>
 
-<div class="collection-shell">
-    @php($hasStatusFilter=in_array($resource,['leads','visits']))
-    @php($activeFilterCount=$hasStatusFilter && filled(request('status')) ? 1 : 0)
-    <form method="get" class="filter-command" data-filter-form>
-        <div class="filter-search"><span class="filter-search__icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4" stroke-linecap="round"></path></svg></span><input name="q" value="{{ request('q') }}" placeholder="{{ $meta['search'] }}" data-filter-search autocomplete="off"><button class="filter-search__submit" type="submit" aria-label="Search"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4" stroke-linecap="round"></path></svg></button></div>
-        @if($hasStatusFilter)
-        <details class="filter-menu" data-filter-menu><summary class="filter-menu__trigger"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4" stroke-linecap="round"></path></svg><span>Filters</span>@if($activeFilterCount)<span class="filter-count">{{ $activeFilterCount }}</span>@endif<svg class="filter-menu__chevron" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m8 10 4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg></summary><div class="filter-menu__panel filter-menu__panel--compact"><div class="filter-menu__head"><div><small>{{ $meta['kicker'] }}</small><strong>Refine this workspace</strong></div><span>{{ $activeFilterCount }} active</span></div><div class="filter-menu__grid filter-menu__grid--1"><label class="filter-field"><span>Status</span><select name="status"><option value="">Any status</option>@foreach($selectOptions['status']??[] as $value=>$label)<option value="{{ $value }}" @selected(request('status')===$value)>{{ $label }}</option>@endforeach</select></label></div><div class="filter-menu__footer"><a href="{{ route('tenant.resource.index',$resource) }}" class="filter-reset">Reset all</a><button class="btn sm">Apply filter</button></div></div></details>
-        @endif
-        <div class="filter-command__meta"><b>{{ number_format($items->total()) }}</b><span>results</span></div>
-    </form>
-    @if(request()->hasAny(['q','status']))<div class="active-filter-row"><span class="active-filter-row__label">Active</span>@if(request('q'))<button type="button" class="filter-chip" data-filter-clear="q">Search: {{ \Illuminate\Support\Str::limit(request('q'),24) }}<span>×</span></button>@endif @if($hasStatusFilter && request('status'))<button type="button" class="filter-chip" data-filter-clear="status">{{ ucfirst(str_replace('_',' ',request('status'))) }}<span>×</span></button>@endif <a href="{{ route('tenant.resource.index',$resource) }}" class="active-filter-row__reset">Clear all</a></div>@endif
-
-    <div class="smart-register">
-        @forelse($items as $item)
-            @if($resource==='owners')
-                <article data-quick-view="{{ route('tenant.resource.quick',[$resource,$item->id]) }}" data-quick-view-title="{{ ucfirst($meta['noun']) }} preview" class="register-row register-row--contact">
-                    <div class="contact-avatar">{{ strtoupper(mb_substr($item->name,0,1)) }}</div>
-                    <div class="register-main"><strong>{{ $item->name }}</strong><span>{{ $item->phone ?: 'No phone' }} @if($item->whatsapp) · WhatsApp {{ $item->whatsapp }} @endif</span></div>
-                    <div class="register-fact"><span>Tazkira</span><b>{{ $item->tazkira_no ?: '—' }}</b></div>
-                    <div class="register-fact register-fact--wide"><span>Address</span><b>{{ \Illuminate\Support\Str::limit($item->address,42) ?: '—' }}</b></div>
-                    <div class="row-more"><span>{{ $item->created_at?->format('d M Y') }}</span><form method="post" action="{{ route('tenant.resource.destroy',[$resource,$item->id]) }}" onsubmit="return confirm('Remove this owner record?')">@csrf @method('DELETE')<button class="icon-quiet" title="Delete">×</button></form></div>
-                </article>
-            @elseif($resource==='customers')
-                <article data-quick-view="{{ route('tenant.resource.quick',[$resource,$item->id]) }}" data-quick-view-title="{{ ucfirst($meta['noun']) }} preview" class="register-row register-row--contact">
-                    <div class="contact-avatar contact-avatar--customer">{{ strtoupper(mb_substr($item->name,0,1)) }}</div>
-                    <div class="register-main"><strong>{{ $item->name }}</strong><span>{{ $item->phone ?: 'No phone' }} @if($item->source) · {{ ucfirst(str_replace('_',' ',$item->source)) }} @endif</span></div>
-                    <div class="register-fact"><span>Tazkira</span><b>{{ $item->tazkira_no ?: '—' }}</b></div>
-                    <div class="register-fact register-fact--wide"><span>Notes</span><b>{{ \Illuminate\Support\Str::limit($item->notes,48) ?: 'No notes yet' }}</b></div>
-                    <div class="row-more"><span>{{ $item->created_at?->format('d M Y') }}</span><form method="post" action="{{ route('tenant.resource.destroy',[$resource,$item->id]) }}" onsubmit="return confirm('Remove this customer record?')">@csrf @method('DELETE')<button class="icon-quiet" title="Delete">×</button></form></div>
-                </article>
-            @elseif($resource==='leads')
-                <article data-quick-view="{{ route('tenant.resource.quick',[$resource,$item->id]) }}" data-quick-view-title="{{ ucfirst($meta['noun']) }} preview" class="register-row register-row--pipeline">
-                    <div class="pipeline-dot pipeline-dot--{{ $item->status }}"></div>
-                    <div class="register-main"><strong>{{ $item->customer?->name ?: '—' }}</strong><span>{{ $item->property?->code ? $item->property->code.' — '.$item->property->title : '—' }}</span></div>
-                    <div class="register-fact"><span>Stage</span><b><span class="badge {{ in_array($item->status,['won'])?'success':(in_array($item->status,['lost'])?'danger':'neutral') }}">{{ str_replace('_',' ',$item->status ?: 'new') }}</span></b></div>
-                    <div class="register-fact"><span>Agent</span><b>{{ $item->assignedUser?->name ?: '—' }}</b></div>
-                    <div class="register-fact"><span>Follow-up</span><b>{{ $item->next_follow_up_at?->format('d M · H:i') ?: 'Not set' }}</b></div>
-                    <div class="row-more"><span>{{ ucfirst($item->source ?: 'direct') }}</span><form method="post" action="{{ route('tenant.resource.destroy',[$resource,$item->id]) }}" onsubmit="return confirm('Remove this lead?')">@csrf @method('DELETE')<button class="icon-quiet">×</button></form></div>
-                </article>
-            @elseif($resource==='visits')
-                <article data-quick-view="{{ route('tenant.resource.quick',[$resource,$item->id]) }}" data-quick-view-title="{{ ucfirst($meta['noun']) }} preview" class="register-row register-row--visit">
-                    <div class="date-tile"><b>{{ $item->scheduled_at?->format('d') ?: '—' }}</b><span>{{ $item->scheduled_at?->format('M') ?: '' }}</span></div>
-                    <div class="register-main"><strong>{{ $item->customer?->name ?: '—' }}</strong><span>{{ $item->property?->code ? $item->property->code.' — '.$item->property->title : '—' }}</span></div>
-                    <div class="register-fact"><span>Time</span><b>{{ $item->scheduled_at?->format('H:i') ?: '—' }}</b></div>
-                    <div class="register-fact"><span>Agent</span><b>{{ $item->assignedUser?->name ?: '—' }}</b></div>
-                    <div class="register-fact"><span>Status</span><b><span class="badge {{ $item->status==='completed'?'success':'neutral' }}">{{ str_replace('_',' ',$item->status ?: 'scheduled') }}</span></b></div>
-                    <div class="row-more"><span>{{ \Illuminate\Support\Str::limit($item->outcome,18) ?: 'No outcome' }}</span><form method="post" action="{{ route('tenant.resource.destroy',[$resource,$item->id]) }}" onsubmit="return confirm('Remove this visit?')">@csrf @method('DELETE')<button class="icon-quiet">×</button></form></div>
-                </article>
-            @elseif($resource==='payments')
-                <article data-quick-view="{{ route('tenant.resource.quick',[$resource,$item->id]) }}" data-quick-view-title="{{ ucfirst($meta['noun']) }} preview" class="register-row register-row--money">
-                    <div class="money-direction {{ $item->direction==='out'?'money-direction--out':'' }}">{{ $item->direction==='out'?'↗':'↙' }}</div>
-                    <div class="register-main"><strong>{{ ucfirst($selectOptions['category'][$item->category]??$item->category??'Payment') }}</strong><span>{{ $item->reference_no ?: 'No reference' }} · {{ ucfirst($selectOptions['method'][$item->method]??$item->method??'cash') }}</span></div>
-                    <div class="register-fact register-fact--money"><span>{{ $item->direction==='out'?'Money out':'Money in' }}</span><b>{{ number_format((float)$item->amount,2) }} {{ $item->currency }}</b></div>
-                    <div class="register-fact"><span>Linked party</span><b>{{ $item->customer?->name ?: ($item->owner?->name ?: '—') }}</b></div>
-                    <div class="register-fact"><span>Date</span><b>{{ $item->paid_at?->format('d M Y') ?: $item->created_at?->format('d M Y') }}</b></div>
-                    <div class="row-more"><span>{{ $item->currency }}</span><form method="post" action="{{ route('tenant.resource.destroy',[$resource,$item->id]) }}" onsubmit="return confirm('Remove this payment?')">@csrf @method('DELETE')<button class="icon-quiet">×</button></form></div>
-                </article>
-            @else
-                <article data-quick-view="{{ route('tenant.resource.quick',[$resource,$item->id]) }}" data-quick-view-title="{{ ucfirst($meta['noun']) }} preview" class="register-row register-row--money">
-                    <div class="money-direction money-direction--out">↗</div>
-                    <div class="register-main"><strong>{{ ucfirst(str_replace('_',' ',$selectOptions['category'][$item->category]??$item->category??'Expense')) }}</strong><span>{{ $item->reference_no ?: 'No reference' }} · {{ ucfirst($selectOptions['method'][$item->method]??$item->method??'cash') }}</span></div>
-                    <div class="register-fact register-fact--money"><span>Expense</span><b>{{ number_format((float)$item->amount,2) }} {{ $item->currency }}</b></div>
-                    <div class="register-fact register-fact--wide"><span>Description</span><b>{{ \Illuminate\Support\Str::limit($item->description,38) ?: '—' }}</b></div>
-                    <div class="register-fact"><span>Date</span><b>{{ $item->expense_date?->format('d M Y') ?: $item->created_at?->format('d M Y') }}</b></div>
-                    <div class="row-more"><span>{{ $item->currency }}</span><form method="post" action="{{ route('tenant.resource.destroy',[$resource,$item->id]) }}" onsubmit="return confirm('Remove this expense?')">@csrf @method('DELETE')<button class="icon-quiet">×</button></form></div>
-                </article>
+<div class="card">
+    <div class="card-body">
+        <form method="get" class="row g-2 mb-3" data-filter-form>
+            <div class="col-12 col-md">
+                <input type="search" class="form-control" name="q" value="{{ request('q') }}" placeholder="{{ __($meta['search']) }}" aria-label="{{ __('Search') }}" data-filter-search autocomplete="off">
+            </div>
+            @if($hasStatusFilter)
+                <div class="col col-md-auto">
+                    <select class="form-select" name="status" aria-label="{{ __('Status') }}" data-plain onchange="this.form.requestSubmit()">
+                        <option value="">{{ __('Any status') }}</option>
+                        @foreach($selectOptions['status']??[] as $value=>$label)<option value="{{ $value }}" @selected(request('status')===$value)>{{ __($label) }}</option>@endforeach
+                    </select>
+                </div>
             @endif
-        @empty
-            <x-workspace.empty title="No {{ strtolower($meta['title']) }} yet" description="Use {{ strtolower($meta['create']) }} to create the first record." />
-        @endforelse
+            <div class="col-auto d-flex gap-2">
+                <button class="btn btn-light-secondary" type="submit" aria-label="{{ __('Search') }}"><x-icon name="magnifying-glass" /></button>
+                @if($filtered)<a class="btn btn-outline-soft" href="{{ route('tenant.resource.index',$resource) }}">{{ __('Clear all') }}</a>@endif
+            </div>
+        </form>
+
+        @if($items->isEmpty())
+            <x-workspace.empty :icon="$meta['icon']" :title="$filtered ? __('Nothing found') : __($meta['empty'])" :description="$filtered ? __('Try another search or clear the filters.') : __('Use :button to create the first record.', ['button' => __($meta['create'])])" />
+        @else
+            <table class="table table-hover w-100 align-middle">
+                <thead>
+                    <tr>
+                    @if($resource==='owners')
+                        <th>{{ __('Owner / landlord') }}</th><th>{{ __('Tazkira') }}</th><th>{{ __('Address') }}</th><th>{{ __('Added') }}</th>
+                    @elseif($resource==='customers')
+                        <th>{{ __('Customer') }}</th><th>{{ __('Tazkira') }}</th><th>{{ __('Notes') }}</th><th>{{ __('Added') }}</th>
+                    @elseif($resource==='leads')
+                        <th>{{ __('Customer') }}</th><th>{{ __('Stage') }}</th><th>{{ __('Agent') }}</th><th>{{ __('Follow-up') }}</th><th>{{ __('Source') }}</th>
+                    @elseif($resource==='visits')
+                        <th>{{ __('Customer') }}</th><th>{{ __('Date') }}</th><th>{{ __('Agent') }}</th><th>{{ __('Status') }}</th><th>{{ __('Outcome') }}</th>
+                    @elseif($resource==='payments')
+                        <th>{{ __('Payment') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Linked party') }}</th><th>{{ __('Date') }}</th>
+                    @else
+                        <th>{{ __('Expense') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Description') }}</th><th>{{ __('Date') }}</th>
+                    @endif
+                        <th class="text-end">{{ __('Actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach($items as $item)
+                    <tr class="cursor-pointer" data-quick-view="{{ $quick($item) }}" data-quick-view-title="{{ __($meta['preview']) }}">
+                    @if($resource==='owners')
+                        <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm avatar-soft-primary">{{ initial($item->name) }}</span><div class="min-w-0"><strong class="d-block text-heading">{{ $item->name }}</strong><span class="small text-muted" dir="ltr">{{ $item->phone ?: __('No phone') }}@if($item->whatsapp) · WhatsApp {{ $item->whatsapp }}@endif</span></div></div></td>
+                        <td dir="ltr">{{ $item->tazkira_no ?: '—' }}</td>
+                        <td>{{ \Illuminate\Support\Str::limit($item->address,42) ?: '—' }}</td>
+                        <td class="text-nowrap" dir="ltr">{{ $item->created_at?->format('d M Y') }}</td>
+                    @elseif($resource==='customers')
+                        <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm avatar-soft-purple">{{ initial($item->name) }}</span><div class="min-w-0"><strong class="d-block text-heading">{{ $item->name }}</strong><span class="small text-muted"><span dir="ltr">{{ $item->phone ?: __('No phone') }}</span>@if($item->source) · {{ $option('source',$item->source) }}@endif</span></div></div></td>
+                        <td dir="ltr">{{ $item->tazkira_no ?: '—' }}</td>
+                        <td>{{ \Illuminate\Support\Str::limit($item->notes,48) ?: __('No notes yet') }}</td>
+                        <td class="text-nowrap" dir="ltr">{{ $item->created_at?->format('d M Y') }}</td>
+                    @elseif($resource==='leads')
+                        <td><strong class="d-block text-heading">{{ $item->customer?->name ?: '—' }}</strong><span class="small text-muted">{{ $item->property?->code ? $item->property->code.' — '.$item->property->title : '—' }}</span></td>
+                        <td><span class="badge-soft {{ status_tone($item->status ?: 'new') }}">{{ $option('status',$item->status ?: 'new') }}</span></td>
+                        <td>{{ $item->assignedUser?->name ?: '—' }}</td>
+                        <td class="text-nowrap" dir="ltr">{{ $item->next_follow_up_at?->format('d M · H:i') ?: '—' }}</td>
+                        <td>{{ $option('source',$item->source ?: 'other') }}</td>
+                    @elseif($resource==='visits')
+                        <td><strong class="d-block text-heading">{{ $item->customer?->name ?: '—' }}</strong><span class="small text-muted">{{ $item->property?->code ? $item->property->code.' — '.$item->property->title : '—' }}</span></td>
+                        <td class="text-nowrap" dir="ltr">{{ $item->scheduled_at?->format('d M Y · H:i') ?: '—' }}</td>
+                        <td>{{ $item->assignedUser?->name ?: '—' }}</td>
+                        <td><span class="badge-soft {{ status_tone($item->status ?: 'scheduled') }}">{{ $option('status',$item->status ?: 'scheduled') }}</span></td>
+                        <td>{{ \Illuminate\Support\Str::limit($item->outcome,28) ?: __('No outcome') }}</td>
+                    @elseif($resource==='payments')
+                        <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm rounded-3 {{ $item->direction==='out' ? 'avatar-soft-danger' : 'avatar-soft-success' }}"><x-icon :name="$item->direction==='out' ? 'arrow-up' : 'arrow-down'" /></span><div class="min-w-0"><strong class="d-block text-heading">{{ $option('category',$item->category,__('Payment')) }}</strong><span class="small text-muted">{{ $item->reference_no ?: __('No reference') }} · {{ $option('method',$item->method ?: 'cash') }}</span></div></div></td>
+                        <td class="text-nowrap"><strong class="{{ $item->direction==='out' ? 'text-danger' : 'text-success' }}" dir="ltr">{{ number_format((float)$item->amount,2) }} {{ $item->currency }}</strong><div class="small text-muted">{{ $item->direction==='out' ? __('Money out') : __('Money in') }}</div></td>
+                        <td>{{ $item->customer?->name ?: ($item->owner?->name ?: '—') }}</td>
+                        <td class="text-nowrap" dir="ltr">{{ $item->paid_at?->format('d M Y') ?: $item->created_at?->format('d M Y') }}</td>
+                    @else
+                        <td><div class="d-flex align-items-center gap-2"><span class="avatar avatar-sm rounded-3 avatar-soft-danger"><x-icon name="arrow-up" /></span><div class="min-w-0"><strong class="d-block text-heading">{{ $option('category',$item->category,__('Expense')) }}</strong><span class="small text-muted">{{ $item->reference_no ?: __('No reference') }} · {{ $option('method',$item->method ?: 'cash') }}</span></div></div></td>
+                        <td class="text-nowrap"><strong dir="ltr">{{ number_format((float)$item->amount,2) }} {{ $item->currency }}</strong></td>
+                        <td>{{ \Illuminate\Support\Str::limit($item->description,38) ?: '—' }}</td>
+                        <td class="text-nowrap" dir="ltr">{{ $item->expense_date?->format('d M Y') ?: $item->created_at?->format('d M Y') }}</td>
+                    @endif
+                        <td class="text-end text-nowrap">
+                            <div class="act-group">
+                                <button type="button" class="btn-act is-blue" data-quick-view="{{ $quick($item) }}" data-quick-view-title="{{ __($meta['preview']) }}" title="{{ __('View') }}" aria-label="{{ __('View') }}"><x-icon name="eye" /></button>
+                                <form method="post" action="{{ route('tenant.resource.destroy',[$resource,$item->id]) }}" class="d-inline" data-confirm="{{ __($meta['confirm']) }}" data-confirm-ok="{{ __('Delete') }}">@csrf @method('DELETE')<button type="submit" class="btn-act is-red" title="{{ __('Delete') }}" aria-label="{{ __('Delete') }}"><x-icon name="trash" /></button></form>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+            {{ $items->links('partials.pagination') }}
+        @endif
     </div>
-    <div class="pagination collection-pagination">{{ $items->links() }}</div>
 </div>
 @endsection
 
 @push('modals')
-<x-workspace.drawer id="resource-create-drawer" :title="$meta['create']" :kicker="$meta['kicker']" description="Create the record here and return to the same workspace without losing context." :wide="in_array($resource,['payments','leads','visits'])">
-    <form method="post" action="{{ route('tenant.resource.store',$resource) }}" class="drawer-form">@csrf
-        <div class="smart-sheet__body">
-            <div class="drawer-intro">
-                <span>{{ strtoupper(mb_substr($meta['noun'],0,1)) }}</span>
-                <div><b>{{ $meta['create'] }}</b><small>Only capture what is useful now. You can enrich the record as the relationship grows.</small></div>
-            </div>
-            <div class="drawer-grid">
+<x-workspace.drawer id="resource-create-drawer" :title="__($meta['create'])" :description="__('Only capture what is useful now. You can enrich the record later.')" :icon="$meta['icon']" :wide="in_array($resource,['payments','leads','visits','expenses'])">
+    <form method="post" action="{{ route('tenant.resource.store',$resource) }}">@csrf
+        <div class="modal-body">
+            <div class="row g-3">
             @foreach($fields as $field=>$type)
-                @php($label=$labels[$field]??ucwords(str_replace('_',' ',$field)))
-                <div class="field {{ in_array($type,['textarea'])?'drawer-span-2':'' }}">
-                    <label>{{ $label }}</label>
+                @php($label=__($labels[$field]??ucwords(str_replace('_',' ',$field))))
+                <div class="col-12 {{ $type==='textarea' ? '' : 'col-md-6' }}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <label class="form-label" for="resource_{{ $field }}">{{ $label }}</label>
+                        @if(isset($lookupUrls[$field]) && isset($relationMeta[$field]))<button class="btn btn-sm btn-link p-0 mb-2 text-decoration-none" type="button" data-modal-open="{{ $relationMeta[$field]['modal'] }}" data-quick-target="resource_{{ $field }}"><x-icon name="plus" class="small" /> {{ __($relationMeta[$field]['label']) }}</button>@endif
+                    </div>
                     @if(isset($lookupUrls[$field]))
-                        <div class="inline-create-field">
-                            <select name="{{ $field }}" id="resource_{{ $field }}" data-remote-url="{{ $lookupUrls[$field] }}" @if(isset($relationMeta[$field])) data-smart-resource="{{ $relationMeta[$field]['resource'] }}" @endif data-placeholder="Search {{ strtolower($label) }}" @if(in_array($field,['customer_id','property_id']) && in_array($resource,['leads','visits'])) required @endif>
-                                <option value=""></option>
-                            </select>
-                            @if(isset($relationMeta[$field]))<button class="inline-create-link" type="button" data-modal-open="{{ $relationMeta[$field]['modal'] }}" data-quick-target="resource_{{ $field }}">{{ $relationMeta[$field]['label'] }}</button>@endif
-                        </div>
+                        <select class="form-select" name="{{ $field }}" id="resource_{{ $field }}" data-remote-url="{{ $lookupUrls[$field] }}" @if(isset($relationMeta[$field])) data-smart-resource="{{ $relationMeta[$field]['resource'] }}" @endif data-placeholder="{{ __('Search…') }}" @if(in_array($field,['customer_id','property_id']) && in_array($resource,['leads','visits'])) required @endif>
+                            <option value=""></option>
+                        </select>
                     @elseif(isset($selectOptions[$field]))
-                        <select name="{{ $field }}"><option value="">Select {{ strtolower($label) }}</option>@foreach($selectOptions[$field] as $value=>$text)<option value="{{ $value }}">{{ $text }}</option>@endforeach</select>
+                        <select class="form-select" name="{{ $field }}" id="resource_{{ $field }}" data-placeholder="{{ __('Choose…') }}"><option value="">{{ __('Choose…') }}</option>@foreach($selectOptions[$field] as $value=>$text)<option value="{{ $value }}">{{ __($text) }}</option>@endforeach</select>
                     @elseif($type==='textarea')
-                        <textarea name="{{ $field }}" placeholder="Add useful context, not unnecessary detail"></textarea>
+                        <textarea class="form-control" name="{{ $field }}" id="resource_{{ $field }}" rows="3" placeholder="{{ __('Add useful context, not unnecessary detail') }}"></textarea>
                     @else
-                        <input type="{{ $type }}" name="{{ $field }}" @if($type==='number') step="any" @endif>
+                        <input class="form-control" type="{{ $type }}" name="{{ $field }}" id="resource_{{ $field }}" @if($type==='number') step="any" dir="ltr" @endif @if(in_array($field,['phone','whatsapp','tazkira_no','reference_no','email'])) dir="ltr" @endif @if(in_array($field,['phone','whatsapp'])) inputmode="tel" @endif>
                     @endif
                 </div>
             @endforeach
             </div>
         </div>
-        <div class="smart-sheet__footer">
-            <span class="sheet-footer-note">Saved directly into this Rahnama workspace.</span>
-            <button type="button" class="btn secondary" data-modal-close>Cancel</button>
-            <button class="btn">Save {{ $meta['noun'] }}</button>
+        <div class="modal-footer">
+            <span class="small text-muted me-auto">{{ __('Saved directly into this Rahnama workspace.') }}</span>
+            <button type="button" class="btn btn-light-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+            <button type="submit" class="btn btn-primary"><x-icon name="check" class="me-1" /> {{ __('Save') }}</button>
         </div>
     </form>
 </x-workspace.drawer>

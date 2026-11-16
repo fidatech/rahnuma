@@ -3,38 +3,28 @@
   const qsa = (s, c = document) => [...c.querySelectorAll(s)];
   const csrf = () => qs('meta[name="csrf-token"]')?.content || '';
 
+  const T = window.RAHNUMA_TEXT || {};
+
+  // messages use the toasts of the template (app.js)
   const toast = (message, type = 'success') => {
-    let stack = qs('.smart-toast-stack');
-    if (!stack) {
-      stack = document.createElement('div');
-      stack.className = 'smart-toast-stack';
-      document.body.appendChild(stack);
-    }
-    const item = document.createElement('div');
-    item.className = `smart-toast ${type}`;
-    item.textContent = message;
-    stack.appendChild(item);
-    setTimeout(() => item.remove(), 3300);
+    if (window.ERP?.toast) window.ERP.toast(message, type);
   };
 
   const openModal = (id, target = null) => {
     const modal = document.getElementById(id);
     if (!modal) return;
     modal.dataset.quickTarget = target || '';
-    const openCount = qsa('.smart-modal.is-open').length;
-    modal.style.zIndex = String(130 + (openCount * 4));
-    modal.classList.add('is-open');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
-    setTimeout(() => qs('input:not([type="hidden"]),select,textarea', modal)?.focus(), 100);
+    if (modal.classList.contains('show')) return;
+    const openCount = qsa('.modal.show').length;
+    window.ERP.showModal(modal);
+    // a pop-up opened from another pop-up sits above it
+    modal.style.zIndex = String(1055 + (openCount * 10));
+    if (modal._back) modal._back.style.zIndex = String(1050 + (openCount * 10));
   };
 
   const closeModal = (modal) => {
     if (!modal) return;
-    modal.classList.remove('is-open');
-    modal.setAttribute('aria-hidden', 'true');
-    modal.style.zIndex = '';
-    if (!qs('.smart-modal.is-open')) document.body.classList.remove('modal-open');
+    window.ERP.hideModal(modal);
   };
 
   const applyPropertyMeta = (option, item) => {
@@ -72,7 +62,7 @@
   };
 
   const submitQuickForm = async (form) => {
-    const modal = form.closest('.smart-modal');
+    const modal = form.closest('.modal');
     const errorBox = qs('[data-form-errors]', form);
     const submit = qs('button[type="submit"]', form);
     const label = qs('[data-submit-label]', submit);
@@ -91,18 +81,18 @@
       });
       const data = await response.json();
       if (!response.ok) {
-        const errors = data.errors ? Object.values(data.errors).flat() : [data.message || 'Could not save this record.'];
+        const errors = data.errors ? Object.values(data.errors).flat() : [data.message || T.couldNotSave || 'Could not save this record.'];
         if (errorBox) { errorBox.innerHTML = errors.map(e => `<div>${String(e)}</div>`).join(''); errorBox.hidden = false; }
         return;
       }
       syncResourceSelects(resource, data.item, modal?.dataset.quickTarget);
-      toast(data.message || 'Saved and selected.', data.created === false ? 'warning' : 'success');
+      toast(data.message || T.saved || 'Saved and selected.', data.created === false ? 'warning' : 'success');
       form.reset();
       closeModal(modal);
       window.RahnumaSPA?.clearCache?.();
       document.dispatchEvent(new CustomEvent('rahnuma:quick-created', { detail: { resource, item: data.item } }));
     } catch (_) {
-      if (errorBox) { errorBox.textContent = 'Network or server error. Please try again.'; errorBox.hidden = false; }
+      if (errorBox) { errorBox.textContent = T.networkError || 'Network or server error. Please try again.'; errorBox.hidden = false; }
     } finally {
       if (submit) submit.disabled = false;
       if (label) label.style.opacity = '1';
@@ -121,10 +111,9 @@
     const closer = event.target.closest('[data-modal-close]');
     if (closer) {
       event.preventDefault();
-      closeModal(closer.closest('.smart-modal'));
+      closeModal(closer.closest('.modal'));
       return;
     }
-    if (event.target.classList.contains('smart-modal')) closeModal(event.target);
 
     qsa('[data-filter-menu][open]').forEach((menu) => {
       if (!menu.contains(event.target)) menu.removeAttribute('open');
@@ -132,7 +121,7 @@
 
     const chip = event.target.closest('[data-filter-clear]');
     if (chip) {
-      const form = chip.closest('.collection-shell, .inventory-shell, .ledger-shell')?.querySelector('[data-filter-form]') || qs('[data-filter-form]');
+      const form = qs('[data-filter-form]');
       const input = form?.elements?.namedItem(chip.dataset.filterClear);
       if (input) {
         input.value = '';
@@ -151,8 +140,6 @@
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      const modals = qsa('.smart-modal.is-open');
-      if (modals.length) closeModal(modals[modals.length - 1]);
       qsa('[data-filter-menu][open]').forEach(menu => menu.removeAttribute('open'));
     }
     if (event.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) {
@@ -178,17 +165,16 @@
     const $ = window.jQuery;
     if (!$ || !$.fn?.select2) return { init() {}, refresh() {} };
 
-    const placeholderFor = (select) => select.dataset.placeholder || select.getAttribute('aria-label') || select.querySelector('option[value=""]')?.textContent?.trim() || 'Select an option';
+    const placeholderFor = (select) => select.dataset.placeholder || select.getAttribute('aria-label') || select.querySelector('option[value=""]')?.textContent?.trim() || T.selectOption || 'Select an option';
     const dropdownParentFor = (select) => {
-      const sheet = select.closest('.smart-sheet__panel');
-      if (sheet) return $(sheet);
-      const filter = select.closest('.filter-menu__panel');
-      if (filter) return $(filter);
+      // inside a pop-up the list must open inside it, or it would sit behind it
+      const modal = select.closest('.modal');
+      if (modal) return $(modal);
       return $(document.body);
     };
 
     const initOne = (select) => {
-      if (!select || select.matches('.sr-only-select,[data-select2-skip]') || select.classList.contains('select2-hidden-accessible')) return;
+      if (!select || select.matches('.sr-only-select,[data-select2-skip],[data-plain]') || select.classList.contains('select2-hidden-accessible')) return;
       const remoteUrl = select.dataset.remoteUrl;
       const optionCount = select.options?.length || 0;
       const options = {
@@ -219,8 +205,12 @@
         if (select.dataset.smartResource === 'property') {
           const option = [...select.options].find(o => String(o.value) === String(e.params.data.id));
           applyPropertyMeta(option, e.params.data);
-          select.dispatchEvent(new Event('change', { bubbles: true }));
         }
+        // Select2 announces a choice through jQuery only: tell the plain listeners of the page too
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      $(select).off('select2:unselect.rahnuma select2:clear.rahnuma').on('select2:unselect.rahnuma select2:clear.rahnuma', () => {
+        select.dispatchEvent(new Event('change', { bubbles: true }));
       });
     };
 
@@ -261,7 +251,7 @@
         const file = input.files?.[0]; if (!file) return;
         const url = URL.createObjectURL(file);
         if (asBackground) target.style.backgroundImage = `url("${url}")`;
-        else { target.innerHTML=''; const img=document.createElement('img'); img.src=url; target.appendChild(img); }
+        else { target.querySelectorAll('img, span').forEach(node => node.remove()); const img=document.createElement('img'); img.src=url; target.prepend(img); }
       });
     };
     previewFile(qs('.brand-cover-action input'), qs('.brand-cover-preview'), true);

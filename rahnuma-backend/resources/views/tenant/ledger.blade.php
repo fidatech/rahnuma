@@ -1,5 +1,44 @@
 @extends('layouts.workspace')
+@section('title', __('General Ledger'))
 @section('workspace')
-<div class="smart-page-head"><div><div class="deal-page-head__back"><a href="{{ route('tenant.accounting') }}">← Accounting</a></div><div class="eyebrow">Audit detail</div><h1>General Ledger</h1><p>Trace every posted debit and credit back through the books.</p></div></div>
-<div class="ledger-shell"><form class="filter-command filter-command--ledger" method="get" data-filter-form><div class="filter-command__title"><span class="filter-command__title-icon"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4" stroke-linecap="round"></path></svg></span><div><small>Ledger view</small><b>{{ request('account_id') ? 'Filtered account' : 'All accounts' }}</b></div></div><details class="filter-menu" data-filter-menu><summary class="filter-menu__trigger"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4" stroke-linecap="round"></path></svg><span>Account filter</span>@if(request('account_id'))<span class="filter-count">1</span>@endif<svg class="filter-menu__chevron" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m8 10 4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg></summary><div class="filter-menu__panel filter-menu__panel--compact"><div class="filter-menu__head"><div><small>General ledger</small><strong>Choose an account</strong></div><span>{{ request('account_id') ? '1 active' : 'No filter' }}</span></div><div class="filter-menu__grid filter-menu__grid--1"><label class="filter-field"><span>Account</span><select name="account_id"><option value="">All accounts</option>@foreach($accounts as $a)<option value="{{ $a->id }}" @selected(request('account_id')==$a->id)>{{ $a->code }} — {{ $a->name }}</option>@endforeach</select></label></div><div class="filter-menu__footer"><a class="filter-reset" href="{{ route('tenant.ledger') }}">Reset</a><button class="btn sm">Apply filter</button></div></div></details><div class="filter-command__meta"><b>{{ number_format($lines->total()) }}</b><span>lines</span></div></form>@if(request('account_id'))<div class="active-filter-row"><span class="active-filter-row__label">Active</span><button type="button" class="filter-chip" data-filter-clear="account_id">Account filter<span>×</span></button><a href="{{ route('tenant.ledger') }}" class="active-filter-row__reset">Clear all</a></div>@endif<div class="ledger-table"><div class="ledger-row ledger-row--head"><span>Date</span><span>Entry</span><span>Account</span><span>Memo</span><span>Debit</span><span>Credit</span></div>@forelse($lines as $l)<div class="ledger-row"><span>{{ $l->journalEntry?->entry_date }}</span><span><b>{{ $l->journalEntry?->entry_no }}</b></span><span><b>{{ $l->account?->name }}</b><small>{{ $l->account?->code }}</small></span><span>{{ \Illuminate\Support\Str::limit($l->memo,42) ?: '—' }}</span><span class="amount">{{ number_format($l->debit,2) }}</span><span class="amount">{{ number_format($l->credit,2) }}</span></div>@empty<x-workspace.empty title="No ledger lines" description="Post a transaction, payment or expense to create accounting activity." />@endforelse</div><div class="pagination collection-pagination">{{ $lines->links() }}</div></div>
+<x-page-header :title="__('General Ledger')" icon="book" :crumbs="[[__('Accounting'), route('tenant.accounting')], [__('General Ledger')]]" :subtitle="__('Trace every posted debit and credit back through the books.')" />
+
+<div class="card">
+    <div class="card-body">
+        <form class="row g-2 mb-3" method="get" data-filter-form>
+            <div class="col-12 col-md">
+                <select class="form-select" name="account_id" aria-label="{{ __('Account') }}" data-placeholder="{{ __('All accounts') }}">
+                    <option value="">{{ __('All accounts') }}</option>
+                    @foreach($accounts as $a)<option value="{{ $a->id }}" @selected(request('account_id')==$a->id)>{{ $a->code }} — {{ __($a->name) }}</option>@endforeach
+                </select>
+            </div>
+            <div class="col-auto d-flex gap-2">
+                <button class="btn btn-primary" type="submit"><x-icon name="filter" class="me-1" /> {{ __('Apply filter') }}</button>
+                @if(request('account_id'))<a class="btn btn-outline-soft" href="{{ route('tenant.ledger') }}">{{ __('Clear all') }}</a>@endif
+            </div>
+            <div class="col-12 col-md-auto d-flex align-items-center small text-muted">{{ __(':count lines', ['count' => number_format($lines->total())]) }}</div>
+        </form>
+
+        @if($lines->isEmpty())
+            <x-workspace.empty icon="book" :title="__('No ledger lines')" :description="__('Post a transaction, payment or expense to create accounting activity.')" />
+        @else
+            <table class="table table-hover w-100">
+                <thead><tr><th>{{ __('Date') }}</th><th>{{ __('Entry') }}</th><th>{{ __('Account') }}</th><th>{{ __('Memo') }}</th><th class="text-end">{{ __('Debit') }}</th><th class="text-end">{{ __('Credit') }}</th></tr></thead>
+                <tbody>
+                @foreach($lines as $l)
+                    <tr>
+                        <td class="text-nowrap" dir="ltr">{{ $l->journalEntry?->entry_date }}</td>
+                        <td><span class="badge-code">{{ $l->journalEntry?->entry_no }}</span></td>
+                        <td><strong class="text-heading">{{ __($l->account?->name ?? '') }}</strong> <span class="small text-muted" dir="ltr">{{ $l->account?->code }}</span></td>
+                        <td>{{ \Illuminate\Support\Str::limit($l->memo,42) ?: '—' }}</td>
+                        <td class="text-end fw-semibold" dir="ltr">{{ number_format($l->debit,2) }}</td>
+                        <td class="text-end fw-semibold" dir="ltr">{{ number_format($l->credit,2) }}</td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+            {{ $lines->links('partials.pagination') }}
+        @endif
+    </div>
+</div>
 @endsection

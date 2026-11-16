@@ -1,9 +1,29 @@
-@extends('layouts.app')
-@section('title','Platform Administration — Rahnuma')
-@section('content')
-<div class="page-header"><div class="page-header__copy"><div class="eyebrow">SaaS control center</div><h1>Platform Administration</h1><p class="page-subtitle">Manage Rahnama tenants, subscriptions, usage and marketplace growth.</p></div><div class="page-actions"><a class="btn secondary" href="{{ route('platform.marketplace') }}">Marketplace promotions</a><a class="btn" href="{{ route('platform.agencies') }}">Manage Rahnamas</a></div></div>
-<div class="kpi-grid">
-@foreach($stats as $k=>$v)<div class="kpi {{ $k==='mrr'?'accent':'' }}"><div class="kpi__top"><span class="kpi__label">{{ ucwords(str_replace('_',' ',$k)) }}</span><span class="kpi__tag">PLATFORM</span></div><div class="kpi__value">{{ number_format($v) }}</div><div class="kpi__foot">Current platform metric</div></div>@endforeach
-</div><div style="height:20px"></div>
-<div class="card"><div class="card-header"><div><h2 class="section-title">Recent Rahnamas</h2><div class="card-subtitle">Latest agencies onboarded to the platform</div></div><a class="btn secondary sm" href="{{ route('platform.agencies') }}">Open tenant manager</a></div><div class="table-wrap"><table><thead><tr><th>Agency</th><th>Plan</th><th>License</th><th>Status</th></tr></thead><tbody>@foreach($agencies as $a)<tr><td><div class="table-title">{{ $a->name }}</div></td><td>{{ $a->plan?->name ?: '—' }}</td><td>{{ $a->license_number ?: '—' }}</td><td><span class="badge {{ $a->is_active?'success':'danger' }}">{{ $a->is_active?'Active':'Disabled' }}</span></td></tr>@endforeach</tbody></table></div></div>
+@extends('layouts.workspace')
+@section('title', __('Platform Administration'))
+@section('workspace')
+@php
+    $icons = ['agencies' => 'building-user', 'active_agencies' => 'circle-check', 'users' => 'users', 'properties' => 'building', 'transactions' => 'handshake', 'mrr' => 'sack-dollar', 'subscriptions' => 'receipt'];
+    $tones = ['blue', 'green', 'violet', 'amber', 'red'];
+    $labels = ['agencies' => 'Agencies', 'active_agencies' => 'Active agencies', 'users' => 'Users', 'properties' => 'Properties', 'transactions' => 'Transactions', 'mrr' => 'Monthly recurring revenue'];
+@endphp
+<x-page-header :title="__('Platform Administration')" icon="server" :subtitle="__('Manage Rahnama tenants, subscriptions, usage and marketplace growth.')">
+    <a class="btn btn-outline-soft" href="{{ route('platform.marketplace') }}"><x-icon name="bullhorn" class="me-1" /> {{ __('Marketplace promotions') }}</a>
+    <a class="btn btn-primary" href="{{ route('platform.agencies') }}"><x-icon name="building-user" class="me-1" /> {{ __('Manage Rahnamas') }}</a>
+</x-page-header>
+
+<div class="row g-3 mb-3">
+@foreach($stats as $k=>$v)
+    <div class="col-6 col-xl-3"><x-stat :label="isset($labels[$k]) ? __($labels[$k]) : enum_label($k)" :value="number_format($v)" :icon="$icons[$k] ?? 'chart-column'" :tone="$tones[$loop->index % count($tones)]" :note="__('Current platform metric')" /></div>
+@endforeach
+</div>
+
+<div class="card">
+    <div class="card-header"><div><h5 class="card-title mb-0">{{ __('Recent Rahnamas') }}</h5><div class="small text-muted">{{ __('Latest agencies onboarded to the platform') }}</div></div><a class="btn btn-sm btn-outline-soft" href="{{ route('platform.agencies') }}">{{ __('Open tenant manager') }}</a></div>
+    <div class="card-body">
+        <table class="table table-hover w-100">
+            <thead><tr><th>{{ __('Agency') }}</th><th>{{ __('Plan') }}</th><th>{{ __('License') }}</th><th>{{ __('Status') }}</th></tr></thead>
+            <tbody>@foreach($agencies as $a)<tr><td><strong class="text-heading">{{ $a->name }}</strong></td><td>{{ $a->plan?->name ?: '—' }}</td><td dir="ltr">{{ $a->license_number ?: '—' }}</td><td><span class="badge-soft {{ $a->is_active ? 'success' : 'danger' }}">{{ $a->is_active ? __('Active') : __('Disabled') }}</span></td></tr>@endforeach</tbody>
+        </table>
+    </div>
+</div>
 @endsection

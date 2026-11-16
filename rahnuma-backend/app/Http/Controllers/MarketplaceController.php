@@ -156,7 +156,7 @@ class MarketplaceController extends Controller
             'preferred_visit_at' => 'nullable|date',
         ]);
         Inquiry::withoutGlobalScopes()->create($data + ['agency_id' => $p->agency_id, 'property_id' => $p->id, 'status' => 'new', 'source' => 'marketplace']);
-        return back()->with('success', 'Your request was sent to the Rahnama.');
+        return back()->with('success', __('Your request was sent to the Rahnama.'));
     }
 
     public function districts(Province $province)

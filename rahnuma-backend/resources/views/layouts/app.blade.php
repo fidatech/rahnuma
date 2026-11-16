@@ -1,57 +1,71 @@
-<!doctype html>
-<html lang="{{ app()->getLocale() }}" dir="{{ in_array(app()->getLocale(),['fa','ps'])?'rtl':'ltr' }}">
+{{--
+    Public pages of the marketplace, in the look of the template: a light top bar with the
+    language list and the light / dark switch, then the page.
+--}}
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ text_dir() }}" data-bs-theme="light" data-primary="blue" data-icons="{{ asset_v('icons.svg') }}">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#101827">
-    <title>@yield('title','Rahnuma')</title>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css">
-    <link rel="stylesheet" href="{{ asset('assets/rahnuma.css') }}?v={{ @filemtime(public_path('assets/rahnuma.css')) ?: time() }}">
+    @include('partials.head')
 </head>
-<body class="@yield('body-class')">
-<header class="site-header">
-    <div class="site-header__inner">
-        <a class="brand" href="/">
-            <span class="brand__mark">R</span>
-            <span class="brand__copy">RAHNUMA<small>AFGHANISTAN REAL ESTATE NETWORK</small></span>
-        </a>
-        <nav class="site-nav">
-            <a href="{{ route('marketplace.properties') }}">Properties</a>
-            @auth
-                @if(auth()->user()->agency_id)<a href="{{ route('tenant.dashboard') }}">Workspace</a>@endif
-                @if(auth()->user()->isPlatformAdmin())<a href="{{ route('platform.dashboard') }}">Platform</a>@endif
-                @if(auth()->user()->isGovernment())<a href="{{ route('government.dashboard') }}">Regulatory</a>@endif
-            @endauth
-        </nav>
-        <div class="site-actions">
-            <div class="locale-switch">
-                <a href="{{ route('locale','fa') }}">دری</a><a href="{{ route('locale','ps') }}">پښتو</a><a href="{{ route('locale','en') }}">EN</a>
+<body class="public-body">
+<div id="rahnuma-public">
+    <header class="site-header">
+        <div class="site-header-inner">
+            <a class="brand-link" href="{{ route('home') }}">
+                <x-brand-logo :size="34" />
+                <span class="brand-text">{{ config('app.name') }}<small>{{ __('Afghanistan real estate network') }}</small></span>
+            </a>
+            <nav class="site-nav">
+                <a class="{{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">{{ __('Home') }}</a>
+                <a class="{{ request()->routeIs('marketplace.properties', 'marketplace.property') ? 'active' : '' }}" href="{{ route('marketplace.properties') }}">{{ __('Properties') }}</a>
+                @auth
+                    @if (auth()->user()->agency_id)<a href="{{ route('tenant.dashboard') }}">{{ __('Workspace') }}</a>@endif
+                    @if (auth()->user()->isPlatformAdmin())<a href="{{ route('platform.dashboard') }}">{{ __('Platform') }}</a>@endif
+                    @if (auth()->user()->isGovernment())<a href="{{ route('government.dashboard') }}">{{ __('Regulatory') }}</a>@endif
+                @endauth
+            </nav>
+            <div class="topbar-right">
+                @include('partials.language-menu')
+                <button class="topbar-icon" type="button" data-theme-toggle title="{{ __('Light / dark mode') }}"><x-icon name="moon" /></button>
+                @auth
+                    <div class="dropdown">
+                        <button class="topbar-user" data-bs-toggle="dropdown" type="button" aria-expanded="false">
+                            <span class="avatar avatar-sm avatar-soft-primary">{{ initial(auth()->user()->name) }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end user-menu">
+                            <li class="user-menu-head"><span class="avatar avatar-md avatar-soft-primary">{{ initial(auth()->user()->name) }}</span><div><strong>{{ auth()->user()->name }}</strong><small>{{ auth()->user()->email }}</small></div></li>
+                            <li><hr class="dropdown-divider"></li>
+                            @if (auth()->user()->agency_id)<li><a class="dropdown-item" href="{{ route('tenant.dashboard') }}"><x-icon name="briefcase" /> {{ __('Workspace') }}</a></li>@endif
+                            @if (auth()->user()->isPlatformAdmin())<li><a class="dropdown-item" href="{{ route('platform.dashboard') }}"><x-icon name="server" /> {{ __('Platform') }}</a></li>@endif
+                            @if (auth()->user()->isGovernment())<li><a class="dropdown-item" href="{{ route('government.dashboard') }}"><x-icon name="landmark" /> {{ __('Regulatory') }}</a></li>@endif
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button class="dropdown-item text-danger" type="submit" form="logoutForm"><x-icon name="right-from-bracket" /> {{ __('Sign out') }}</button></li>
+                        </ul>
+                    </div>
+                @else
+                    <a class="btn btn-primary btn-sm" href="{{ route('login') }}"><x-icon name="right-to-bracket" class="me-1" /> {{ __('Sign in') }}</a>
+                @endauth
             </div>
-            @auth
-                <div class="user-chip"><span class="avatar">{{ strtoupper(substr(auth()->user()->name,0,1)) }}</span></div>
-                <form method="post" action="{{ route('logout') }}">@csrf<button class="btn ghost sm" style="color:#d0d5dd">Logout</button></form>
-            @else
-                <a class="btn sm" href="{{ route('login') }}">Sign in</a>
-            @endauth
         </div>
-    </div>
-</header>
-<main class="page-shell" id="rahnuma-page">
-    <div id="rahnuma-flashes">
-        @if(session('success'))<div class="flash">{{ session('success') }}</div>@endif
-        @if($errors->any())<div class="error">{{ implode(' · ',$errors->all()) }}</div>@endif
-    </div>
-    @yield('content')
-</main>
-<div id="rahnuma-modals">@stack('modals')</div>
-<div id="rahnuma-page-scripts" hidden>@stack('scripts')</div>
-<div class="spa-progress" id="rahnuma-spa-progress" aria-hidden="true"><span></span></div>
-<script defer src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-<script defer src="{{ asset('assets/rahnuma-smart.js') }}?v={{ @filemtime(public_path('assets/rahnuma-smart.js')) ?: time() }}"></script>
-<script defer src="{{ asset('assets/rahnuma-spa.js') }}?v={{ @filemtime(public_path('assets/rahnuma-spa.js')) ?: time() }}"></script>
+    </header>
+
+    <main class="site-main">
+        @yield('content')
+    </main>
+
+    <footer class="site-footer">
+        <span>© {{ date('Y') }} {{ config('app.name') }} · {{ __('Afghanistan real estate network') }}</span>
+        <span class="text-muted">{{ __('by') }} <a href="https://fida.af" target="_blank" rel="noopener">Fida Technologies</a></span>
+    </footer>
+</div>
+
+@auth
+<form id="logoutForm" method="POST" action="{{ route('logout') }}" hidden data-native
+      data-confirm="{{ __('Sign out?') }}" data-confirm-text="{{ __('You will need to sign in again to continue.') }}"
+      data-confirm-ok="{{ __('Sign out') }}" data-confirm-style="primary">@csrf</form>
+@endauth
+
+@include('partials.flash')
+@include('partials.scripts')
 </body>
 </html>

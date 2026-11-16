@@ -51,7 +51,7 @@ class SettingsController extends Controller
         $agency->update($data);
         Cache::forget('rahnuma:marketplace:home:v8');
 
-        return back()->with('success', 'Company profile updated. The public marketplace profile now uses these details.');
+        return back()->with('success', __('Company profile updated. The public marketplace profile now uses these details.'));
     }
 
     public function updateMarketplace(Request $request)
@@ -74,7 +74,7 @@ class SettingsController extends Controller
         auth()->user()->agency->update($data);
         Cache::forget('rahnuma:marketplace:home:v8');
 
-        return back()->with('success', 'System and marketplace preferences updated.');
+        return back()->with('success', __('System and marketplace preferences updated.'));
     }
 
     public function updateProfile(Request $request)
@@ -91,7 +91,8 @@ class SettingsController extends Controller
         unset($data['avatar']);
         if ($request->hasFile('avatar')) $data['avatar_path'] = $request->file('avatar')->store('users/'.$user->id, 'public');
         $user->update($data);
-        return back()->with('success', 'Your profile was updated.');
+        if (in_array($data['locale'], ['en','fa','ps'], true)) session(['locale' => $data['locale']]);
+        return back()->with('success', __('Your profile was updated.'));
     }
 
     public function updatePassword(Request $request)
@@ -101,6 +102,6 @@ class SettingsController extends Controller
             'password' => ['required','confirmed','min:8'],
         ]);
         auth()->user()->update(['password' => Hash::make($request->password)]);
-        return back()->with('success', 'Password changed successfully.');
+        return back()->with('success', __('Password changed successfully.'));
     }
 }

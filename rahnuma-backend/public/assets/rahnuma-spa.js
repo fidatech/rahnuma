@@ -1,8 +1,16 @@
 (() => {
+  // Fast navigation without a full reload. Blade stays the source of every page: the next page is
+  // fetched and only its content is put in place, so the sidebar and the top bar stay mounted.
+  //
+  //   panel pages    #rahnuma-shell (data-shell = workspace | platform | government) > #rahnuma-content
+  //   public pages   #rahnuma-public
+  //
+  // Moving between two different shells is an ordinary page load.
   const pageCache = new Map();
   const quickCache = new Map();
   const CACHE_TTL = 20000;
   const MAX_CACHE = 24;
+  const T = window.RAHNUMA_TEXT || {};
   let activeController = null;
   let navigating = false;
 
@@ -35,6 +43,7 @@
     if (!link || !link.href || !sameOrigin(link.href)) return false;
     if (link.target && link.target !== '_self') return false;
     if (link.hasAttribute('download') || link.dataset.native !== undefined || link.dataset.noSpa !== undefined) return false;
+    if (link.getAttribute('href').charAt(0) === '#' || link.hasAttribute('data-bs-toggle')) return false;
     if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0)) return false;
     const url = new URL(link.href);
     if (url.pathname === location.pathname && url.search === location.search && url.hash) return false;
@@ -83,37 +92,44 @@
   const syncDocument = (html, finalUrl, { push = true, scroll = true, restoreScroll = null } = {}) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const incomingPage = doc.querySelector('#rahnuma-page');
-    const currentPage = document.querySelector('#rahnuma-page');
-    if (!incomingPage || !currentPage) {
+
+    const currentShell = document.getElementById('rahnuma-shell');
+    const incomingShell = doc.getElementById('rahnuma-shell');
+    const currentPublic = document.getElementById('rahnuma-public');
+    const incomingPublic = doc.getElementById('rahnuma-public');
+
+    const sameShell = Boolean(currentShell && incomingShell && currentShell.dataset.shell === incomingShell.dataset.shell);
+    const samePublic = Boolean(currentPublic && incomingPublic);
+    // another language needs the other style sheet (left to right or right to left)
+    const sameDirection = (doc.documentElement.dir || 'ltr') === (document.documentElement.dir || 'ltr')
+      && (doc.documentElement.lang || '') === (document.documentElement.lang || '');
+
+    if ((!sameShell && !samePublic) || !sameDirection) {
       location.href = finalUrl;
       return;
     }
 
     const swap = () => {
-      const currentWorkspace = currentPage.querySelector('.workspace-shell');
-      const incomingWorkspace = incomingPage.querySelector('.workspace-shell');
-      const sameWorkspaceShell = Boolean(currentWorkspace && incomingWorkspace);
+      window.ERP?.closeAll?.();
 
-      if (sameWorkspaceShell) {
-        const currentMain = currentWorkspace.querySelector('.workspace-main');
-        const incomingMain = incomingWorkspace.querySelector('.workspace-main');
-        if (currentMain && incomingMain) {
-          currentMain.className = incomingMain.className;
-          currentMain.innerHTML = incomingMain.innerHTML;
-        }
+      if (sameShell) {
+        const currentMain = document.getElementById('rahnuma-content');
+        const incomingMain = doc.getElementById('rahnuma-content');
+        if (currentMain && incomingMain) currentMain.innerHTML = incomingMain.innerHTML;
 
-        const incomingLinks = new Map([...incomingWorkspace.querySelectorAll('.workspace-sidebar a[href]')].map(a => [new URL(a.href, finalUrl).pathname + new URL(a.href, finalUrl).search, a.className]));
-        currentWorkspace.querySelectorAll('.workspace-sidebar a[href]').forEach((a) => {
-          const key = new URL(a.href, location.href).pathname + new URL(a.href, location.href).search;
-          if (incomingLinks.has(key)) a.className = incomingLinks.get(key);
+        const currentMenu = document.getElementById('sidebarMenu');
+        const incomingMenu = doc.getElementById('sidebarMenu');
+        if (currentMenu && incomingMenu) currentMenu.innerHTML = incomingMenu.innerHTML;
+
+        const currentTitle = document.getElementById('appbarTitle');
+        const incomingTitle = doc.getElementById('appbarTitle');
+        if (currentTitle && incomingTitle) currentTitle.textContent = incomingTitle.textContent;
+
+        document.querySelectorAll('.app-tabbar a.tab-item').forEach((tab) => {
+          tab.classList.toggle('active', new URL(tab.href, location.href).pathname === new URL(finalUrl, location.href).pathname);
         });
       } else {
-        const currentHeader = document.querySelector('.site-header');
-        const incomingHeader = doc.querySelector('.site-header');
-        if (currentHeader && incomingHeader) currentHeader.replaceWith(incomingHeader.cloneNode(true));
-        currentPage.className = incomingPage.className;
-        currentPage.innerHTML = incomingPage.innerHTML;
+        currentPublic.innerHTML = incomingPublic.innerHTML;
       }
 
       const currentFlashes = document.getElementById('rahnuma-flashes');
@@ -125,9 +141,6 @@
       if (currentModals) currentModals.innerHTML = incomingModals?.innerHTML || '';
 
       document.title = doc.title || document.title;
-      document.body.className = doc.body.className;
-      document.documentElement.lang = doc.documentElement.lang || document.documentElement.lang;
-      document.documentElement.dir = doc.documentElement.dir || document.documentElement.dir;
       const currentCsrf = document.querySelector('meta[name="csrf-token"]');
       const incomingCsrf = doc.querySelector('meta[name="csrf-token"]');
       if (currentCsrf && incomingCsrf) currentCsrf.content = incomingCsrf.content;
@@ -144,7 +157,6 @@
   };
 
   const navigate = async (url, opts = {}) => {
-    closeQuick();
     if (opts.push !== false) history.replaceState({ ...(history.state || {}), rahnuma: true, scrollY: window.scrollY }, '', location.href);
     if (navigating && !opts.force) activeController?.abort();
     navigating = true;
@@ -153,6 +165,16 @@
     try {
       const result = await fetchHtml(url, { signal: activeController.signal });
       syncDocument(result.html, result.url, opts);
+      // an address that points at a part of the page (settings#profile) goes to that part
+      const hash = new URL(url, location.href).hash;
+      if (hash && hash.length > 1) {
+        setTimeout(() => {
+          const target = document.getElementById(decodeURIComponent(hash.slice(1)));
+          if (!target) return;
+          history.replaceState(history.state, '', location.pathname + location.search + hash);
+          target.scrollIntoView({ block: 'start' });
+        }, 80);
+      }
     } catch (error) {
       if (error.name !== 'AbortError') location.href = url;
     } finally {
@@ -185,39 +207,43 @@
     }
   };
 
+  // ------------------------------------------------------------------ quick view
+  // A row or a card marked data-quick-view opens its record in a pop-up of the template.
+  const LOADING = '<div class="modal-body text-center py-5"><span class="spinner-border text-primary" role="status" aria-hidden="true"></span></div>';
+
   const ensureQuickSheet = () => {
     let sheet = document.getElementById('rahnuma-quick-sheet');
     if (sheet) return sheet;
     sheet = document.createElement('div');
     sheet.id = 'rahnuma-quick-sheet';
-    sheet.className = 'quick-sheet';
+    sheet.className = 'modal fade quick-view-modal';
+    sheet.tabIndex = -1;
     sheet.setAttribute('aria-hidden', 'true');
     sheet.innerHTML = `
-      <div class="quick-sheet__backdrop" data-quick-close></div>
-      <aside class="quick-sheet__panel" role="dialog" aria-modal="true">
-        <div class="quick-sheet__header"><div><span>Quick view</span><strong id="quick-sheet-title">Preview</strong></div><button type="button" data-quick-close aria-label="Close">×</button></div>
-        <div class="quick-sheet__content" id="quick-sheet-content"><div class="quick-sheet__loading"><span></span><span></span><span></span></div></div>
-      </aside>`;
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="quick-sheet-title"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="${T.close || 'Close'}"></button>
+          </div>
+          <div id="quick-sheet-content"></div>
+        </div>
+      </div>`;
     document.body.appendChild(sheet);
     return sheet;
   };
 
   const closeQuick = () => {
     const sheet = document.getElementById('rahnuma-quick-sheet');
-    if (!sheet) return;
-    sheet.classList.remove('is-open');
-    sheet.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('quick-view-open');
+    if (sheet) window.ERP?.hideModal?.(sheet);
   };
 
-  const openQuick = async (url, title = 'Quick view') => {
+  const openQuick = async (url, title) => {
     const sheet = ensureQuickSheet();
-    sheet.querySelector('#quick-sheet-title').textContent = title;
+    sheet.querySelector('#quick-sheet-title').textContent = title || T.quickView || 'Quick view';
     const content = sheet.querySelector('#quick-sheet-content');
-    content.innerHTML = '<div class="quick-sheet__loading"><span></span><span></span><span></span></div>';
-    sheet.classList.add('is-open');
-    sheet.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('quick-view-open');
+    content.innerHTML = LOADING;
+    if (!sheet.classList.contains('show')) window.ERP?.showModal?.(sheet);
 
     try {
       let html = cacheGet(quickCache, url);
@@ -230,7 +256,7 @@
       content.innerHTML = html;
       document.dispatchEvent(new CustomEvent('rahnuma:quick-view-loaded', { detail: { url } }));
     } catch (_) {
-      content.innerHTML = '<div class="quick-sheet__error">Could not load this preview. Open the full record instead.</div>';
+      content.innerHTML = `<div class="modal-body"><div class="alert alert-danger mb-0">${T.previewFailed || 'Could not load this preview. Open the full record instead.'}</div></div>`;
     }
   };
 
@@ -246,6 +272,8 @@
   };
 
   document.addEventListener('click', (event) => {
+    if (event.defaultPrevented) return;
+
     const quickClose = event.target.closest('[data-quick-close]');
     if (quickClose) { event.preventDefault(); closeQuick(); return; }
 
@@ -254,7 +282,7 @@
     if (quick && (!interactive || interactive === quick)) {
       event.preventDefault();
       event.stopPropagation();
-      openQuick(quick.dataset.quickView, quick.dataset.quickViewTitle || 'Quick view');
+      openQuick(quick.dataset.quickView, quick.dataset.quickViewTitle);
       return;
     }
 
@@ -278,10 +306,6 @@
     clearTimeout(link.__rahnumaPrefetch);
     link.__rahnumaPrefetch = setTimeout(() => prefetch(link), 70);
   }, true);
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeQuick();
-  });
 
   window.addEventListener('popstate', (event) => navigate(location.href, { push: false, scroll: false, restoreScroll: event.state?.scrollY ?? 0, force: true }));
 

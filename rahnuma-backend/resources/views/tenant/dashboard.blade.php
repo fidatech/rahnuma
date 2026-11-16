@@ -1,95 +1,119 @@
 @extends('layouts.workspace')
+@section('title', __('Dashboard'))
 @section('workspace')
-<div class="workspace-toolbar">
-    <div>
-        <div class="eyebrow">Operations overview</div>
-        <h1 style="margin:0 0 5px">Good day, {{ auth()->user()->name }}</h1>
-        <div class="workspace-toolbar__meta">Your property pipeline, customer activity and financial obligations in one view.</div>
-    </div>
-    <div class="page-actions">
-        <a class="btn secondary" href="{{ route('tenant.transactions.create') }}">New transaction</a>
-        <a class="btn" href="{{ route('tenant.properties.create') }}">Add property</a>
-    </div>
+<x-page-header :title="__('Dashboard')" icon="gauge-high" :subtitle="__('Good day, :name', ['name' => auth()->user()->name]).' · '.__('Your property pipeline, customer activity and financial obligations in one view.')">
+    <a class="btn btn-outline-soft" href="{{ route('tenant.transactions.create') }}"><x-icon name="handshake" class="me-1" /> {{ __('New transaction') }}</a>
+    <a class="btn btn-primary" href="{{ route('tenant.properties.create') }}"><x-icon name="plus" class="me-1" /> {{ __('Add property') }}</a>
+</x-page-header>
+
+<div class="row g-3 mb-3">
+    <div class="col-12 col-sm-6 col-xl-3"><x-stat :label="__('Active inventory')" :value="number_format($stats['available_properties'])" icon="building" tone="blue" :note="__(':count published to marketplace', ['count' => number_format($stats['public_listings'])])" :href="route('tenant.properties.index')" /></div>
+    <div class="col-12 col-sm-6 col-xl-3"><x-stat :label="__('Customers')" :value="number_format($stats['customers'])" icon="users" tone="violet" :note="__(':count active opportunities', ['count' => number_format($stats['active_leads'])])" :href="route('tenant.resource.index', 'customers')" /></div>
+    <div class="col-12 col-sm-6 col-xl-3"><x-stat :label="__('Commission receivable')" :value="number_format($stats['commission_due'])" icon="hand-holding-dollar" tone="green" :note="__(':count unpaid commission records', ['count' => number_format($dueCommissionCount)])" /></div>
+    <div class="col-12 col-sm-6 col-xl-3"><x-stat :label="__('Rent due / overdue')" :value="number_format($stats['rent_due'])" icon="calendar-days" tone="amber" :note="__(':count overdue schedules need attention', ['count' => number_format($overdueRentCount)])" /></div>
 </div>
 
-<div class="kpi-grid">
-    <div class="kpi primary"><div class="kpi__top"><span class="kpi__label">Active inventory</span><span class="kpi__tag">LIVE</span></div><div class="kpi__value">{{ number_format($stats['available_properties']) }}</div><div class="kpi__foot">{{ number_format($stats['public_listings']) }} published to marketplace</div></div>
-    <div class="kpi"><div class="kpi__top"><span class="kpi__label">Customers</span><span class="kpi__tag">CRM</span></div><div class="kpi__value">{{ number_format($stats['customers']) }}</div><div class="kpi__foot">{{ number_format($stats['active_leads']) }} active opportunities</div></div>
-    <div class="kpi accent"><div class="kpi__top"><span class="kpi__label">Commission receivable</span><span class="kpi__tag">DUE</span></div><div class="kpi__value">{{ number_format($stats['commission_due']) }}</div><div class="kpi__foot">{{ number_format($dueCommissionCount) }} unpaid commission records</div></div>
-    <div class="kpi warning"><div class="kpi__top"><span class="kpi__label">Rent due / overdue</span><span class="kpi__tag">RENT</span></div><div class="kpi__value">{{ number_format($stats['rent_due']) }}</div><div class="kpi__foot">{{ number_format($overdueRentCount) }} overdue schedules need attention</div></div>
-</div>
-
-<div style="height:18px"></div>
-<div class="quick-actions">
-    <a class="quick-action" href="{{ route('tenant.properties.create') }}"><b>Register property</b><span>Add inventory, owner, pricing and visibility</span></a>
-    <a class="quick-action" href="{{ route('tenant.resource.index','customers') }}"><b>New customer</b><span>Capture demand and follow-up details</span></a>
-    <a class="quick-action" href="{{ route('tenant.transactions.create') }}"><b>Close a deal</b><span>Sale, rent or Mortgage / بیع وفا</span></a>
-    <a class="quick-action" href="{{ route('tenant.accounting') }}"><b>Financial reports</b><span>Trial balance, profit & loss and ledger</span></a>
-</div>
-
-<div style="height:18px"></div>
-<div class="grid">
-    <div class="g7 card">
-        <div class="card-header">
-            <div><h2 class="section-title">Recent properties</h2><div class="card-subtitle">Latest inventory registered by your team</div></div>
-            <a class="btn secondary sm" href="{{ route('tenant.properties.index') }}">View all</a>
-        </div>
-        <div class="table-wrap">
-            <table>
-                <thead><tr><th>Property</th><th>Deal</th><th>Price</th><th>Status</th><th>Visibility</th></tr></thead>
-                <tbody>
-                @forelse($recent as $p)
-                    <tr>
-                        <td><div class="table-title">{{ $p->title }}</div><div class="table-subtitle">{{ $p->code }} · {{ $p->owner?->name ?: 'No owner assigned' }}</div></td>
-                        <td>{{ $p->transaction_type==='bay_wafa'?'Mortgage':ucfirst($p->transaction_type) }}</td>
-                        <td class="amount">{{ number_format($p->transaction_type==='rent'?$p->monthly_rent:$p->price) }} {{ $p->currency }}</td>
-                        <td><span class="badge {{ in_array($p->status,['available','active'])?'success':'neutral' }}">{{ $p->status }}</span></td>
-                        <td><span class="badge neutral">{{ $p->visibility }}</span></td>
-                    </tr>
-                @empty
-                    <tr><td colspan="5"><div class="empty-state">No properties have been registered yet.</div></td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="g5 card">
-        <div class="card-header"><div><h2 class="section-title">Deal activity</h2><div class="card-subtitle">Most recent completed or draft transactions</div></div></div>
-        <div class="activity-list">
-            @forelse($recentTransactions as $t)
-                <a class="activity-row" href="{{ route('tenant.transactions.show',$t) }}">
-                    <span class="activity-icon">{{ strtoupper(substr($t->transaction_type,0,1)) }}</span>
-                    <span><span class="activity-title">{{ $t->property?->title ?: $t->reference_no }}</span><span class="activity-sub">{{ $t->reference_no }} · {{ $t->transaction_type==='bay_wafa'?'Mortgage':ucfirst($t->transaction_type) }}</span></span>
-                    <span class="activity-amount">{{ number_format($t->amount?:$t->monthly_rent) }}<br><small class="muted">{{ $t->currency }}</small></span>
-                </a>
-            @empty<div class="empty-state">No transaction activity yet.</div>@endforelse
-        </div>
-    </div>
-
-    <div class="g6 card">
-        <div class="card-header"><div><h2 class="section-title">Upcoming follow-ups</h2><div class="card-subtitle">Customers that need attention next</div></div></div>
-        <div class="activity-list">
-            @forelse($followUps as $lead)
-                <div class="activity-row">
-                    <span class="activity-icon">F</span>
-                    <span><span class="activity-title">{{ $lead->customer?->name ?: 'Customer follow-up' }}</span><span class="activity-sub">{{ $lead->property?->title ?: ucfirst($lead->status) }}</span></span>
-                    <span class="activity-amount">{{ optional($lead->next_follow_up_at)->format('d M') }}</span>
+<div class="row g-3 mb-3">
+    @foreach ([
+        [route('tenant.properties.create'), 'building', 'primary', 'Register property', 'Add inventory, owner, pricing and visibility'],
+        [route('tenant.resource.index', 'customers'), 'user-plus', 'purple', 'New customer', 'Capture demand and follow-up details'],
+        [route('tenant.transactions.create'), 'handshake', 'success', 'Close a deal', 'Sale, rent or mortgage (Bay-e-Wafa)'],
+        [route('tenant.accounting'), 'chart-column', 'warning', 'Financial reports', 'Trial balance, profit & loss and ledger'],
+    ] as [$url, $icon, $tone, $label, $text])
+        <div class="col-12 col-sm-6 col-xl-3">
+            <a class="card card-hover h-100 mb-0 text-decoration-none text-reset" href="{{ $url }}">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="sc-icon icon-soft {{ $tone }}"><x-icon :name="$icon" /></span>
+                    <span class="min-w-0"><strong class="d-block text-heading">{{ __($label) }}</strong><span class="small text-muted">{{ __($text) }}</span></span>
                 </div>
-            @empty<div class="empty-state">No follow-ups scheduled.</div>@endforelse
+            </a>
+        </div>
+    @endforeach
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-xl-8">
+        <div class="card h-100 mb-0">
+            <div class="card-header">
+                <div><h5 class="card-title mb-0">{{ __('Recent properties') }}</h5><div class="small text-muted">{{ __('Latest inventory registered by your team') }}</div></div>
+                <a class="btn btn-sm btn-outline-soft" href="{{ route('tenant.properties.index') }}">{{ __('View all') }}</a>
+            </div>
+            <div class="card-body">
+                @if ($recent->isEmpty())
+                    <x-workspace.empty icon="building" :title="__('No properties have been registered yet.')" :description="__('Register the first property and link it to its owner.')" />
+                @else
+                    <table class="table table-hover w-100">
+                        <thead><tr><th>{{ __('Property') }}</th><th>{{ __('Deal') }}</th><th>{{ __('Price') }}</th><th>{{ __('Status') }}</th></tr></thead>
+                        <tbody>
+                        @foreach ($recent as $p)
+                            <tr>
+                                <td><a class="fw-semibold text-heading text-decoration-none" href="{{ route('tenant.properties.edit', $p) }}">{{ $p->title }}</a><div class="small text-muted">{{ $p->code }} · {{ $p->owner?->name ?: __('No owner assigned') }}</div></td>
+                                <td>{{ deal_label($p->transaction_type) }}</td>
+                                <td class="text-nowrap fw-semibold" dir="ltr">{{ number_format($p->transaction_type === 'rent' ? $p->monthly_rent : $p->price) }} {{ $p->currency }}</td>
+                                <td class="text-nowrap"><span class="badge-soft {{ status_tone($p->status) }}">{{ enum_label($p->status) }}</span> <span class="badge-soft secondary">{{ enum_label($p->visibility) }}</span></td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            </div>
         </div>
     </div>
 
-    <div class="g6 card">
-        <div class="card-header"><div><h2 class="section-title">Upcoming visits</h2><div class="card-subtitle">Property viewings scheduled by the team</div></div></div>
-        <div class="activity-list">
-            @forelse($upcomingVisits as $visit)
-                <div class="activity-row">
-                    <span class="activity-icon">V</span>
-                    <span><span class="activity-title">{{ $visit->customer?->name }}</span><span class="activity-sub">{{ $visit->property?->title }}</span></span>
-                    <span class="activity-amount">{{ optional($visit->scheduled_at)->format('d M H:i') }}</span>
-                </div>
-            @empty<div class="empty-state">No property visits scheduled.</div>@endforelse
+    <div class="col-12 col-xl-4">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><div><h5 class="card-title mb-0">{{ __('Deal activity') }}</h5><div class="small text-muted">{{ __('Most recent completed or draft transactions') }}</div></div></div>
+            <div class="card-body">
+                <ul class="list-clean">
+                    @forelse ($recentTransactions as $t)
+                        <li>
+                            <span class="avatar avatar-sm rounded-3 avatar-soft-{{ ['sale' => 'primary', 'rent' => 'success', 'bay_wafa' => 'purple'][$t->transaction_type] ?? 'primary' }}"><x-icon :name="['sale' => 'key', 'rent' => 'house-user', 'bay_wafa' => 'file-contract'][$t->transaction_type] ?? 'handshake'" /></span>
+                            <a class="flex-fill min-w-0 text-decoration-none text-reset" href="{{ route('tenant.transactions.show', $t) }}"><strong class="d-block text-truncate text-heading">{{ $t->property?->title ?: $t->reference_no }}</strong><span class="small text-muted">{{ $t->reference_no }} · {{ deal_label($t->transaction_type) }}</span></a>
+                            <span class="text-end text-nowrap"><strong class="d-block" dir="ltr">{{ number_format($t->amount ?: $t->monthly_rent) }}</strong><span class="small text-muted">{{ $t->currency }}</span></span>
+                        </li>
+                    @empty
+                        <li class="text-muted">{{ __('No transaction activity yet.') }}</li>
+                    @endforelse
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><div><h5 class="card-title mb-0">{{ __('Upcoming follow-ups') }}</h5><div class="small text-muted">{{ __('Customers that need attention next') }}</div></div></div>
+            <div class="card-body">
+                <ul class="list-clean">
+                    @forelse ($followUps as $lead)
+                        <li>
+                            <span class="avatar avatar-sm avatar-soft-warning"><x-icon name="phone" /></span>
+                            <span class="flex-fill min-w-0"><strong class="d-block text-truncate text-heading">{{ $lead->customer?->name ?: __('Customer follow-up') }}</strong><span class="small text-muted">{{ $lead->property?->title ?: enum_label($lead->status) }}</span></span>
+                            @if ($lead->next_follow_up_at)<span class="badge-code" dir="ltr">{{ $lead->next_follow_up_at->format('d M') }}</span>@endif
+                        </li>
+                    @empty
+                        <li class="text-muted">{{ __('No follow-ups scheduled.') }}</li>
+                    @endforelse
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><div><h5 class="card-title mb-0">{{ __('Upcoming visits') }}</h5><div class="small text-muted">{{ __('Property viewings scheduled by the team') }}</div></div></div>
+            <div class="card-body">
+                <ul class="list-clean">
+                    @forelse ($upcomingVisits as $visit)
+                        <li>
+                            <span class="avatar avatar-sm avatar-soft-info"><x-icon name="calendar-check" /></span>
+                            <span class="flex-fill min-w-0"><strong class="d-block text-truncate text-heading">{{ $visit->customer?->name }}</strong><span class="small text-muted">{{ $visit->property?->title }}</span></span>
+                            @if ($visit->scheduled_at)<span class="badge-code" dir="ltr">{{ $visit->scheduled_at->format('d M H:i') }}</span>@endif
+                        </li>
+                    @empty
+                        <li class="text-muted">{{ __('No property visits scheduled.') }}</li>
+                    @endforelse
+                </ul>
+            </div>
         </div>
     </div>
 </div>

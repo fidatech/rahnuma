@@ -1,43 +1,63 @@
-@extends('layouts.app')
-@section('body-class','workspace-page')
-@section('content')
-<div class="workspace-shell">
-    <aside class="workspace-sidebar">
-        <div class="workspace-sidebar__top">
-            <a class="agency-lockup" href="{{ route('tenant.settings.edit') }}">
-                <div class="agency-lockup__logo">@if(auth()->user()->agency?->logo_path)<img src="{{ asset('storage/'.auth()->user()->agency->logo_path) }}" alt="">@else{{ strtoupper(substr(auth()->user()->agency?->name ?: 'R',0,1)) }}@endif</div>
-                <div><div class="agency-lockup__name">{{ auth()->user()->agency?->name }}</div><div class="agency-lockup__meta">Rahnama workspace</div></div>
-            </a>
-        </div>
-        <div class="workspace-sidebar__nav">
-            <div class="nav-group"><div class="nav-group__label">Overview</div><a class="{{ request()->routeIs('tenant.dashboard')?'active':'' }}" href="{{ route('tenant.dashboard') }}">Dashboard <span>›</span></a></div>
-            <div class="nav-group"><div class="nav-group__label">Property & CRM</div>
-                <a class="{{ request()->routeIs('tenant.properties.*')?'active':'' }}" href="{{ route('tenant.properties.index') }}">Properties <span>›</span></a>
-                <a class="{{ request()->is('workspace/owners*')?'active':'' }}" href="{{ route('tenant.resource.index','owners') }}">Landlords & Owners <span>›</span></a>
-                <a class="{{ request()->is('workspace/customers*')?'active':'' }}" href="{{ route('tenant.resource.index','customers') }}">Customers <span>›</span></a>
-                <a class="{{ request()->routeIs('tenant.requirements.*')?'active':'' }}" href="{{ route('tenant.requirements.index') }}">Requirements & Matching <span>›</span></a>
-                <a class="{{ request()->is('workspace/leads*')?'active':'' }}" href="{{ route('tenant.resource.index','leads') }}">Leads <span>›</span></a>
-                <a class="{{ request()->is('workspace/visits*')?'active':'' }}" href="{{ route('tenant.resource.index','visits') }}">Visits & Follow-ups <span>›</span></a>
+{{--
+    The panel of the template: sidebar, top bar, content, and the tab bar of phones.
+    Used by the Rahnama workspace, the platform administration and the regulatory workspace;
+    the sidebar shows the menu of the panel the address belongs to.
+
+    @extends('layouts.workspace')  @section('title', __('...'))  @section('workspace') ... @endsection
+--}}
+@php
+    $shell = request()->routeIs('platform.*') ? 'platform' : (request()->routeIs('government.*') ? 'government' : 'workspace');
+    $home = route(['workspace' => 'tenant.dashboard', 'platform' => 'platform.dashboard', 'government' => 'government.dashboard'][$shell]);
+@endphp
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ text_dir() }}" data-bs-theme="light" data-sidebar="light" data-layout="vertical" data-primary="blue" data-width="fluid" data-icons="{{ asset_v('icons.svg') }}" data-home="{{ $home }}">
+<head>
+    @include('partials.head')
+</head>
+<body>
+<div class="app-wrapper" id="rahnuma-shell" data-shell="{{ $shell }}">
+    @include('partials.sidebar')
+    <div class="app-main">
+        @include('partials.topbar')
+        <main class="app-content">
+            <div class="content-container" id="rahnuma-content">
+                @if ($shell === 'government' && ! config('rahnuma.government_mode'))
+                    <div class="alert alert-warning d-flex gap-2 align-items-start"><x-icon name="triangle-exclamation" class="mt-1" /><div><strong>{{ __('Private demonstration mode.') }}</strong> {{ __('This regulatory workspace is not represented as Ministry-approved or official.') }}</div></div>
+                @endif
+                @yield('workspace')
             </div>
-            <div class="nav-group"><div class="nav-group__label">Deals & Finance</div>
-                <a class="{{ request()->routeIs('tenant.transactions.*')?'active':'' }}" href="{{ route('tenant.transactions.index') }}">Sales / Rent / Mortgage <span>›</span></a>
-                <a class="{{ request()->is('workspace/payments*')?'active':'' }}" href="{{ route('tenant.resource.index','payments') }}">Payments <span>›</span></a>
-                <a class="{{ request()->is('workspace/expenses*')?'active':'' }}" href="{{ route('tenant.resource.index','expenses') }}">Expenses <span>›</span></a>
-                <a class="{{ request()->routeIs('tenant.accounting')||request()->routeIs('tenant.ledger')?'active':'' }}" href="{{ route('tenant.accounting') }}">Accounting & Reports <span>›</span></a>
-            </div>
-            <div class="nav-group"><div class="nav-group__label">Network & Administration</div>
-                <a class="{{ request()->routeIs('tenant.cooperation.*')?'active':'' }}" href="{{ route('tenant.cooperation.index') }}">Cross-Rahnama Cooperation <span>›</span></a>
-                <a class="{{ request()->routeIs('tenant.staff.*')?'active':'' }}" href="{{ route('tenant.staff.index') }}">Team & Roles <span>›</span></a>
-                <a class="{{ request()->routeIs('tenant.settings.*')?'active':'' }}" href="{{ route('tenant.settings.edit') }}">System & Company Settings <span>›</span></a>
-            </div>
-        </div>
-        <div class="workspace-sidebar__bottom">
-            <a class="sidebar-profile" href="{{ route('tenant.settings.edit') }}#profile">
-                <span class="sidebar-profile__avatar">@if(auth()->user()->avatar_path)<img src="{{ asset('storage/'.auth()->user()->avatar_path) }}">@else{{ strtoupper(substr(auth()->user()->name,0,1)) }}@endif</span>
-                <span><b>{{ auth()->user()->name }}</b><small>{{ auth()->user()->job_title ?: str_replace('_',' ',auth()->user()->role) }}</small></span><i>⚙</i>
-            </a>
-        </div>
-    </aside>
-    <section class="workspace-main">@yield('workspace')</section>
+        </main>
+        <footer class="app-footer">
+            <span>© {{ date('Y') }} {{ config('app.name') }}</span>
+            <nav><span class="text-muted">{{ __('by') }} <a href="https://fida.af" target="_blank" rel="noopener">Fida Technologies</a></span></nav>
+        </footer>
+    </div>
 </div>
-@endsection
+
+<nav class="app-tabbar" aria-label="{{ __('Menu') }}">
+    <a href="{{ $home }}" class="tab-item {{ request()->url() === $home ? 'active' : '' }}"><x-icon name="house" /><em>{{ __('Home') }}</em></a>
+    @if ($shell === 'workspace')
+        <a href="{{ route('tenant.properties.index') }}" class="tab-item {{ request()->routeIs('tenant.properties.*') ? 'active' : '' }}"><x-icon name="building" /><em>{{ __('Properties') }}</em></a>
+        <a href="{{ route('tenant.transactions.index') }}" class="tab-item {{ request()->routeIs('tenant.transactions.*') ? 'active' : '' }}"><x-icon name="handshake" /><em>{{ __('Deals') }}</em></a>
+    @endif
+    <button type="button" class="tab-item" data-bs-toggle="modal" data-bs-target="#searchModal"><x-icon name="magnifying-glass" /><em>{{ __('Search') }}</em></button>
+    <button type="button" class="tab-item" id="tabMenu"><x-icon name="grip" /><em>{{ __('Menu') }}</em></button>
+</nav>
+
+<div class="modal fade" id="searchModal" tabindex="-1" aria-label="{{ __('Search') }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable search-dialog">
+        <div class="modal-content">
+            <div class="search-input"><x-icon name="magnifying-glass" /><input type="text" id="searchInput" placeholder="{{ __('Search pages…') }}" autocomplete="off"><kbd>Esc</kbd></div>
+            <div class="modal-body p-2" id="searchResults"></div>
+        </div>
+    </div>
+</div>
+
+<form id="logoutForm" method="POST" action="{{ route('logout') }}" hidden data-native
+      data-confirm="{{ __('Sign out?') }}" data-confirm-text="{{ __('You will need to sign in again to continue.') }}"
+      data-confirm-ok="{{ __('Sign out') }}" data-confirm-style="primary">@csrf</form>
+
+@include('partials.flash')
+@include('partials.scripts')
+</body>
+</html>

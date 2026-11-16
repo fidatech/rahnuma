@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api.dart';
+import '../l10n.dart';
 import '../storage.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -28,42 +29,42 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
     'address': address.text,
   };
   Future<void> saveOnline() async { setState(() => busy = true); try { await widget.api.post('/workspace/properties', data()); if (mounted) Navigator.pop(context); } catch (e) { setState(() => message = '$e'); } finally { if (mounted) setState(() => busy = false); } }
-  Future<void> saveDraft() async { await widget.store.addDraft({...data(), 'saved_at': DateTime.now().toIso8601String()}); if (mounted) setState(() => message = 'Draft saved offline. Financial and regulatory records are never queued offline.'); }
+  Future<void> saveDraft() async { await widget.store.addDraft({...data(), 'saved_at': DateTime.now().toIso8601String()}); if (mounted) setState(() => message = 'Draft saved offline. Financial and regulatory records are never queued offline.'.tr); }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Register property')),
+    appBar: AppBar(title: Text('Register property'.tr)),
     body: ListView(padding: const EdgeInsets.fromLTRB(16, 18, 16, 32), children: [
-      const SectionLabel('Property record'),
+      SectionLabel('Property record'.tr),
       const SizedBox(height: 5),
-      const Text('Add property inventory', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w900, letterSpacing: -.6, color: RahnumaTheme.ink)),
+      Text('Add property inventory'.tr, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800, color: RahnumaTheme.heading)),
       const SizedBox(height: 6),
-      const Text('Capture the essential commercial and location information now; complete advanced details from web when needed.', style: TextStyle(fontSize: 11.5, color: RahnumaTheme.muted, height: 1.5)),
-      const SizedBox(height: 20),
-      Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SectionLabel('Core details'), const SizedBox(height: 12),
-        TextField(controller: title, decoration: const InputDecoration(labelText: 'Listing title')),
+      Text('Capture the essential commercial and location information now; complete advanced details from web when needed.'.tr, style: const TextStyle(fontSize: 12, color: RahnumaTheme.muted, height: 1.5)),
+      const SizedBox(height: 18),
+      SoftCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SectionLabel('Core details'.tr), const SizedBox(height: 12),
+        TextField(controller: title, decoration: InputDecoration(labelText: 'Listing title'.tr)),
         const SizedBox(height: 10),
-        DropdownButtonFormField<String>(value: type, decoration: const InputDecoration(labelText: 'Property type'), items: ['house','apartment','shop','office','land','warehouse','building'].map((x) => DropdownMenuItem(value: x, child: Text(x[0].toUpperCase()+x.substring(1)))).toList(), onChanged: (v) => setState(() => type = v!)),
+        DropdownButtonFormField<String>(value: type, isExpanded: true, decoration: InputDecoration(labelText: 'Property type'.tr), items: ['house','apartment','shop','office','land','warehouse','building'].map((x) => DropdownMenuItem(value: x, child: Text(L.label(x)))).toList(), onChanged: (v) => setState(() => type = v!)),
         const SizedBox(height: 10),
-        DropdownButtonFormField<String>(value: transaction, decoration: const InputDecoration(labelText: 'Transaction'), items: const [DropdownMenuItem(value:'rent',child:Text('Rent')),DropdownMenuItem(value:'sale',child:Text('Sale')),DropdownMenuItem(value:'bay_wafa',child:Text('Mortgage / بیع وفا'))], onChanged: (v) => setState(() => transaction = v!)),
-      ]))),
+        DropdownButtonFormField<String>(value: transaction, isExpanded: true, decoration: InputDecoration(labelText: 'Transaction'.tr), items: [DropdownMenuItem(value: 'rent', child: Text('Rent'.tr)), DropdownMenuItem(value: 'sale', child: Text('Sale'.tr)), DropdownMenuItem(value: 'bay_wafa', child: Text('Mortgage / Bay-e-Wafa'.tr))], onChanged: (v) => setState(() => transaction = v!)),
+      ])),
       const SizedBox(height: 12),
-      Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const SectionLabel('Commercial terms'), const SizedBox(height: 12),
-        TextField(controller: price, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: transaction == 'rent' ? 'Monthly rent' : 'Amount')),
+      SoftCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SectionLabel('Commercial terms'.tr), const SizedBox(height: 12),
+        TextField(controller: price, keyboardType: TextInputType.number, textDirection: TextDirection.ltr, decoration: InputDecoration(labelText: transaction == 'rent' ? 'Monthly rent'.tr : 'Amount'.tr)),
         const SizedBox(height: 10),
-        DropdownButtonFormField<String>(value: currency, decoration: const InputDecoration(labelText: 'Currency'), items: ['AFN','USD','EUR','PKR','AED'].map((x) => DropdownMenuItem(value: x, child: Text(x))).toList(), onChanged: (v) => setState(() => currency = v!)),
+        DropdownButtonFormField<String>(value: currency, isExpanded: true, decoration: InputDecoration(labelText: 'Currency'.tr), items: ['AFN','USD','EUR','PKR','AED'].map((x) => DropdownMenuItem(value: x, child: Text(x))).toList(), onChanged: (v) => setState(() => currency = v!)),
         const SizedBox(height: 10),
-        DropdownButtonFormField<String>(value: visibility, decoration: const InputDecoration(labelText: 'Visibility'), items: ['private','link','public','featured'].map((x) => DropdownMenuItem(value: x, child: Text(x[0].toUpperCase()+x.substring(1)))).toList(), onChanged: (v) => setState(() => visibility = v!)),
-      ]))),
+        DropdownButtonFormField<String>(value: visibility, isExpanded: true, decoration: InputDecoration(labelText: 'Visibility'.tr), items: ['private','link','public','featured'].map((x) => DropdownMenuItem(value: x, child: Text(L.label(x)))).toList(), onChanged: (v) => setState(() => visibility = v!)),
+      ])),
       const SizedBox(height: 12),
-      Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const SectionLabel('Location'), const SizedBox(height: 12), TextField(controller: address, decoration: const InputDecoration(labelText: 'Address'), maxLines: 2)]))),
+      SoftCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [SectionLabel('Location'.tr), const SizedBox(height: 12), TextField(controller: address, decoration: InputDecoration(labelText: 'Address'.tr), maxLines: 2)])),
       if (message != null) Padding(padding: const EdgeInsets.symmetric(vertical: 12), child: Text(message!, style: const TextStyle(color: RahnumaTheme.muted))),
       const SizedBox(height: 14),
-      FilledButton(onPressed: busy ? null : saveOnline, child: Text(busy ? 'Saving...' : 'Save property')),
+      FilledButton(onPressed: busy ? null : saveOnline, child: Text(busy ? 'Saving...'.tr : 'Save property'.tr)),
       const SizedBox(height: 8),
-      OutlinedButton(onPressed: saveDraft, child: const Text('Save offline draft')),
+      OutlinedButton(onPressed: saveDraft, child: Text('Save offline draft'.tr)),
     ]),
   );
 }
