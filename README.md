@@ -19,6 +19,23 @@ php artisan optimize:clear
 No migration and no Composer or Node step is needed. Change the look in `resources/assets` and run
 `php tools/build-assets.php`. Add or correct a translation in `lang/fa.json` and `lang/ps.json`.
 
+## Seed data
+
+`php artisan migrate --seed` installs only what a real installation needs: the subscription plans,
+the 34 provinces with the districts and neighbourhoods of the five largest cities, and the platform
+administrator (`admin@rahnuma.af`, password `ChangeMe123!` — change it after the first sign-in).
+Use exactly this on the live server.
+
+Sample data is separate and is never run by the command above:
+
+```bash
+php artisan db:seed --class=DemoSeeder
+```
+
+It adds 20 Rahnama offices in Kabul, Herat, Mazar-e-Sharif, Kandahar and Jalalabad with 100 properties,
+landlords, customers and leads, and the demo sign-ins `demo@rahnuma.af`, `government@rahnuma.af` and
+`inspector@rahnuma.af` (password `ChangeMe123!`). It refuses to run when `APP_ENV=production`.
+
 The notes below describe the earlier V2 to V8 releases.
 
 ## V2 Professional Redesign
