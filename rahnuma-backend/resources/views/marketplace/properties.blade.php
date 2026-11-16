@@ -16,27 +16,83 @@
     </div>
 </form>
 
-<div class="row g-3">
-    <aside class="col-12 col-lg-3">
-        <form class="card rh-sticky" method="get">
+@php
+    $filterKeys = ['min_price','max_price','area_id','currency','bedrooms','featured','sponsored'];
+    $activeCount = collect($filterKeys)->filter(fn ($k) => request()->filled($k))->count();
+    // one removable chip for every filter in use
+    $chips = [];
+    if (request()->filled('q')) $chips['q'] = request('q');
+    if (request()->filled('province_id')) $chips['province_id'] = loc_name($provinces->firstWhere('id', (int) request('province_id'))) ?: __('Province');
+    if (request()->filled('district_id')) $chips['district_id'] = loc_name($districts->firstWhere('id', (int) request('district_id'))) ?: __('District');
+    if (request()->filled('area_id')) $chips['area_id'] = loc_name($areas->firstWhere('id', (int) request('area_id'))) ?: __('Area / neighborhood');
+    if (request()->filled('property_type')) $chips['property_type'] = enum_label(request('property_type'));
+    if (request()->filled('transaction_type')) $chips['transaction_type'] = deal_label(request('transaction_type'), true);
+    if (request()->filled('min_price')) $chips['min_price'] = __('Min').' '.number_format((float) request('min_price'));
+    if (request()->filled('max_price')) $chips['max_price'] = __('Max').' '.number_format((float) request('max_price'));
+    if (request()->filled('currency')) $chips['currency'] = request('currency');
+    if (request()->filled('bedrooms')) $chips['bedrooms'] = request('bedrooms').'+ '.__('Bedrooms');
+    if (request()->boolean('featured')) $chips['featured'] = __('Featured only');
+    if (request()->boolean('sponsored')) $chips['sponsored'] = __('Sponsored only');
+@endphp
+<div class="row g-3 align-items-start">
+    <aside class="col-12 col-lg-3 rh-sticky">
+        <form class="rh-filter" method="get" id="marketFilters">
             @foreach(request()->except(['min_price','max_price','bedrooms','currency','sort','featured','sponsored','page','area_id']) as $k=>$v)@if(!is_array($v))<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endif @endforeach
-            <div class="card-header"><h5 class="card-title mb-0">{{ __('Refine results') }}</h5><a class="small" href="{{ route('marketplace.properties') }}">{{ __('Reset') }}</a></div>
-            <div class="card-body d-grid gap-3">
-                <div><label class="form-label">{{ __('Price range') }}</label><div class="input-group" dir="ltr"><input class="form-control" type="number" name="min_price" value="{{ request('min_price') }}" placeholder="{{ __('Min') }}"><input class="form-control" type="number" name="max_price" value="{{ request('max_price') }}" placeholder="{{ __('Max') }}"></div></div>
-                <div><label class="form-label">{{ __('Area / neighborhood') }}</label><select class="form-select" name="area_id" id="market_area" data-placeholder="{{ __('Any area') }}"><option value=""></option>@foreach($areas as $a)<option value="{{ $a->id }}" @selected(request('area_id')==$a->id)>{{ loc_name($a) }}</option>@endforeach</select></div>
-                <div><label class="form-label">{{ __('Currency') }}</label><select class="form-select" name="currency" data-placeholder="{{ __('Any currency') }}"><option value=""></option>@foreach(config('rahnuma.currencies') as $c)<option value="{{ $c }}" @selected(request('currency')===$c)>{{ $c }}</option>@endforeach</select></div>
-                <div><label class="form-label">{{ __('Minimum bedrooms') }}</label><select class="form-select" name="bedrooms" data-placeholder="{{ __('Any') }}"><option value=""></option>@foreach([1,2,3,4,5,6] as $n)<option value="{{ $n }}" @selected(request('bedrooms')==$n)>{{ $n }}+</option>@endforeach</select></div>
-                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="only_featured" name="featured" value="1" @checked(request('featured'))><label class="form-check-label" for="only_featured">{{ __('Featured only') }}</label></div>
-                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="only_sponsored" name="sponsored" value="1" @checked(request('sponsored'))><label class="form-check-label" for="only_sponsored">{{ __('Sponsored only') }}</label></div>
-                <button class="btn btn-primary w-100"><x-icon name="filter" class="me-1" /> {{ __('Apply filters') }}</button>
-            </div>
+            <details class="rh-filter-box" open>
+                <summary class="rh-filter-head">
+                    <span><x-icon name="sliders" /> {{ __('Refine results') }} @if($activeCount)<b class="rh-filter-count">{{ $activeCount }}</b>@endif</span>
+                    <x-icon name="chevron-down" class="rh-filter-caret" />
+                </summary>
+                <div class="rh-filter-body">
+                    <fieldset class="rh-filter-group">
+                        <legend>{{ __('Price range') }}</legend>
+                        <div class="rh-range" dir="ltr">
+                            <input class="form-control" type="number" min="0" inputmode="numeric" name="min_price" value="{{ request('min_price') }}" placeholder="{{ __('Min') }}" aria-label="{{ __('Min') }}">
+                            <span aria-hidden="true">–</span>
+                            <input class="form-control" type="number" min="0" inputmode="numeric" name="max_price" value="{{ request('max_price') }}" placeholder="{{ __('Max') }}" aria-label="{{ __('Max') }}">
+                        </div>
+                    </fieldset>
+                    <fieldset class="rh-filter-group">
+                        <legend>{{ __('Currency') }}</legend>
+                        <div class="rh-chips">
+                            <label class="rh-chip"><input type="radio" name="currency" value="" data-auto @checked(!request('currency'))><span>{{ __('Any') }}</span></label>
+                            @foreach(config('rahnuma.currencies') as $c)<label class="rh-chip"><input type="radio" name="currency" value="{{ $c }}" data-auto @checked(request('currency')===$c)><span>{{ $c }}</span></label>@endforeach
+                        </div>
+                    </fieldset>
+                    <fieldset class="rh-filter-group">
+                        <legend>{{ __('Minimum bedrooms') }}</legend>
+                        <div class="rh-chips is-even">
+                            <label class="rh-chip"><input type="radio" name="bedrooms" value="" data-auto @checked(!request('bedrooms'))><span>{{ __('Any') }}</span></label>
+                            @foreach([1,2,3,4,5] as $n)<label class="rh-chip"><input type="radio" name="bedrooms" value="{{ $n }}" data-auto @checked(request('bedrooms')==$n)><span dir="ltr">{{ $n }}+</span></label>@endforeach
+                        </div>
+                    </fieldset>
+                    <fieldset class="rh-filter-group">
+                        <legend>{{ __('Area / neighborhood') }}</legend>
+                        <select class="form-select" name="area_id" id="market_area" data-auto data-placeholder="{{ __('Any area') }}"><option value=""></option>@foreach($areas as $a)<option value="{{ $a->id }}" @selected(request('area_id')==$a->id)>{{ loc_name($a) }}</option>@endforeach</select>
+                    </fieldset>
+                    <div class="rh-filter-switches">
+                        <label class="form-check form-switch" for="only_featured"><span><x-icon name="star" /> {{ __('Featured only') }}</span><input class="form-check-input" type="checkbox" role="switch" id="only_featured" name="featured" value="1" data-auto @checked(request('featured'))></label>
+                        <label class="form-check form-switch" for="only_sponsored"><span><x-icon name="bullhorn" /> {{ __('Sponsored only') }}</span><input class="form-check-input" type="checkbox" role="switch" id="only_sponsored" name="sponsored" value="1" data-auto @checked(request('sponsored'))></label>
+                    </div>
+                    <div class="rh-filter-actions">
+                        <button class="btn btn-primary flex-fill"><x-icon name="filter" class="me-1" /> {{ __('Apply filters') }}</button>
+                        <a class="btn btn-outline-soft" href="{{ route('marketplace.properties') }}">{{ __('Reset') }}</a>
+                    </div>
+                </div>
+            </details>
         </form>
     </aside>
     <section class="col-12 col-lg-9">
-        <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
-            <div class="text-muted">{{ __(':count properties', ['count' => number_format($properties->total())]) }}</div>
+        <div class="rh-results-bar">
+            <div class="rh-results-count">{!! __(':count properties', ['count' => '<strong>'.number_format($properties->total()).'</strong>']) !!}</div>
             <form><select class="form-select form-select-sm w-auto" name="sort" data-plain aria-label="{{ __('Sort') }}" onchange="const u=new URL(location.href);u.searchParams.set('sort',this.value);location.href=u.toString();"><option value="newest">{{ __('Newest first') }}</option><option value="price_low" @selected(request('sort')==='price_low')>{{ __('Price: low to high') }}</option><option value="price_high" @selected(request('sort')==='price_high')>{{ __('Price: high to low') }}</option><option value="oldest" @selected(request('sort')==='oldest')>{{ __('Oldest first') }}</option></select></form>
         </div>
+        @if($chips)
+            <div class="rh-active">
+                @foreach($chips as $key => $label)<a class="rh-active-chip" href="{{ request()->fullUrlWithoutQuery([$key, 'page']) }}" title="{{ __('Remove filter') }}">{{ $label }} <x-icon name="xmark" /></a>@endforeach
+                @if(count($chips) > 1)<a class="rh-active-clear" href="{{ route('marketplace.properties') }}">{{ __('Clear all') }}</a>@endif
+            </div>
+        @endif
         @if($properties->isEmpty())
             <div class="card"><div class="card-body"><x-workspace.empty icon="magnifying-glass" :title="__('No properties match these filters.')" :description="__('Try a wider location or price range.')" /></div></div>
         @else
@@ -52,6 +108,14 @@
  const province=document.getElementById('market_province'), district=document.getElementById('market_district'), area=document.getElementById('market_area');
  const reset=(select,label)=>{ if(!select)return; select.innerHTML='<option value=""></option>'; select.dataset.placeholder=label; window.RahnumaSelect2?.refresh(select); };
  const fill=async(select,url,label)=>{ reset(select,label); if(!url)return; try{ const res=await fetch(url,{headers:{Accept:'application/json'}}); const rows=await res.json(); rows.forEach(row=>select.add(new Option(row.text,row.id))); window.RahnumaSelect2?.refresh(select); }catch(e){} };
+ const filters=document.getElementById('marketFilters');
+ // a choice applies at once; the price waits for the button or the Enter key
+ const submitFilters=e=>{ if(e.target.matches('[data-auto]')) filters.requestSubmit(); };
+ filters?.addEventListener('change',submitFilters);
+ if(window.jQuery && area) window.jQuery(area).on('select2:select select2:clear',()=>filters.requestSubmit());
+ // on a phone the panel starts closed so the results come first; the tags above them show what is applied
+ const box=filters?.querySelector('details');
+ if(box && window.matchMedia('(max-width: 991.98px)').matches) box.open=false;
  province?.addEventListener('change',()=>{ reset(area,text.anyArea); fill(district,province.value?`${province.dataset.districtUrl}/${province.value}`:null,text.anyDistrict); });
  district?.addEventListener('change',()=>fill(area,district.value?`${district.dataset.areaUrl}/${district.value}`:null,text.anyArea));
 })();
