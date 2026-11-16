@@ -40,7 +40,7 @@ Route::middleware(['auth','tenant','tenant.access'])->prefix('workspace')->name(
  Route::post('{resource}',[ResourceController::class,'store'])->whereIn('resource',['owners','customers','leads','visits','payments','expenses'])->name('resource.store');
  Route::delete('{resource}/{id}',[ResourceController::class,'destroy'])->whereIn('resource',['owners','customers','leads','visits','payments','expenses'])->name('resource.destroy');
 });
-Route::middleware(['auth','role:platform_admin'])->prefix('platform')->name('platform.')->group(function(){Route::get('/',PlatformDashboard::class)->name('dashboard');Route::get('/agencies',[PlatformAgencyController::class,'index'])->name('agencies');Route::post('/agencies',[PlatformAgencyController::class,'store'])->name('agencies.store');Route::post('/agencies/{agency}/toggle',[PlatformAgencyController::class,'toggle'])->name('agencies.toggle');Route::get('/marketplace',[MarketplacePromotionController::class,'index'])->name('marketplace');Route::post('/marketplace/properties/{property}/sponsor',[MarketplacePromotionController::class,'sponsor'])->name('marketplace.sponsor');Route::post('/marketplace/properties/{property}/unsponsor',[MarketplacePromotionController::class,'unsponsor'])->name('marketplace.unsponsor');Route::post('/marketplace/agencies/{agency}/feature',[MarketplacePromotionController::class,'toggleAgency'])->name('marketplace.agency-feature');});
+Route::middleware(['auth','role:platform_admin'])->prefix('platform')->name('platform.')->group(function(){Route::get('/',PlatformDashboard::class)->name('dashboard');Route::get('/agencies',[PlatformAgencyController::class,'index'])->name('agencies');Route::post('/agencies',[PlatformAgencyController::class,'store'])->name('agencies.store');Route::post('/agencies/{agency}/toggle',[PlatformAgencyController::class,'toggle'])->name('agencies.toggle');Route::get('/marketplace',[MarketplacePromotionController::class,'index'])->name('marketplace');Route::post('/marketplace/promote',[MarketplacePromotionController::class,'store'])->name('marketplace.promote');Route::post('/marketplace/stop',[MarketplacePromotionController::class,'stop'])->name('marketplace.stop');});
 // the rest of the administrator panel
 Route::middleware(['auth','role:platform_admin'])->prefix('platform')->name('platform.')->group(function(){
  Route::get('/agencies/{agency}',[PlatformAgencyController::class,'show'])->name('agencies.show');
@@ -75,7 +75,10 @@ Route::middleware(['auth','role:platform_admin'])->prefix('platform')->name('pla
 
  Route::get('/finance',[Admin\FinanceController::class,'index'])->name('finance');
  Route::post('/finance',[Admin\FinanceController::class,'store'])->name('finance.store');
- Route::delete('/finance/{entry}',[Admin\FinanceController::class,'destroy'])->name('finance.destroy');
+ Route::delete('/finance/{entry}',[Admin\FinanceController::class,'destroy'])->whereNumber('entry')->name('finance.destroy');
+ Route::post('/finance/kinds',[Admin\FinanceController::class,'storeKind'])->name('finance.kinds.store');
+ Route::put('/finance/kinds/{kind}',[Admin\FinanceController::class,'updateKind'])->name('finance.kinds.update');
+ Route::delete('/finance/kinds/{kind}',[Admin\FinanceController::class,'destroyKind'])->name('finance.kinds.destroy');
 
  Route::get('/locations',[Admin\LocationController::class,'index'])->name('locations');
  Route::post('/locations',[Admin\LocationController::class,'store'])->name('locations.store');

@@ -15,7 +15,7 @@ class Property extends Model
         'well' => 'boolean', 'heating' => 'boolean', 'cooling' => 'boolean', 'furnished' => 'boolean',
         'internet' => 'boolean', 'security' => 'boolean', 'elevator' => 'boolean', 'balcony' => 'boolean',
         'garden' => 'boolean', 'basement' => 'boolean', 'storage' => 'boolean',
-        'featured_at' => 'datetime', 'published_at' => 'datetime', 'is_sponsored' => 'boolean', 'sponsored_until' => 'datetime',
+        'featured_at' => 'datetime', 'featured_until' => 'datetime', 'published_at' => 'datetime', 'is_sponsored' => 'boolean', 'sponsored_until' => 'datetime',
     ];
 
     public function agency(){ return $this->belongsTo(Agency::class); }

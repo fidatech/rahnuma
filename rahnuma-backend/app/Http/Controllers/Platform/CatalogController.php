@@ -36,11 +36,13 @@ class CatalogController extends Controller
 
     public function visibility(Request $r, Property $property)
     {
-        $d = $r->validate(['visibility' => 'required|in:private,public,featured']);
+        // a featured placement is paid for: it is given on the promotions page, not here
+        $d = $r->validate(['visibility' => 'required|in:private,public']);
         $old = $property->only(['visibility']);
         $property->update([
             'visibility' => $d['visibility'],
-            'featured_at' => $d['visibility'] === 'featured' ? ($property->featured_at ?: now()) : null,
+            'featured_at' => null,
+            'featured_until' => null,
             'published_at' => $d['visibility'] === 'private' ? $property->published_at : ($property->published_at ?: now()),
         ]);
         Cache::forget('rahnuma:marketplace:home:v9');

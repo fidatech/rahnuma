@@ -55,11 +55,12 @@ class PropertyController extends Controller
         }
 
         $data = $this->validated($request);
+        $data['visibility'] = $this->allowedVisibility($data['visibility']);
         $this->ensureOwnerBelongsToTenant($data['owner_id'] ?? null);
 
         $property = Property::create($data + [
             'code' => 'PR-'.date('ymd').'-'.random_int(1000, 9999),
-            'published_at' => in_array($request->visibility, ['public', 'featured'], true) ? now() : null,
+            'published_at' => in_array($data['visibility'], ['public', 'featured'], true) ? now() : null,
         ]);
 
         $this->syncPrimaryOwner($property);
@@ -77,10 +78,12 @@ class PropertyController extends Controller
     public function update(Request $request, Property $property)
     {
         $data = $this->validated($request);
+        $data['visibility'] = $this->allowedVisibility($data['visibility'], $property);
+        if ($data['visibility'] !== 'featured' && $property->visibility === 'featured') $data += ['featured_at' => null, 'featured_until' => null];
         $this->ensureOwnerBelongsToTenant($data['owner_id'] ?? null);
 
         $property->update($data + [
-            'published_at' => in_array($request->visibility, ['public', 'featured'], true) ? ($property->published_at ?? now()) : null,
+            'published_at' => in_array($data['visibility'], ['public', 'featured'], true) ? ($property->published_at ?? now()) : null,
         ]);
 
         $this->syncPrimaryOwner($property);
@@ -180,6 +183,17 @@ class PropertyController extends Controller
             ['property_id' => $property->id, 'owner_id' => $property->owner_id],
             ['is_primary' => true, 'ownership_percent' => $otherOwners ? null : 100]
         );
+    }
+
+    /**
+     * An office chooses between private, by link and public. "Featured" is a paid placement the
+     * administrator gives: a listing that has it keeps it, an office cannot give it to itself.
+     */
+    private function allowedVisibility(?string $asked, ?Property $property = null): string
+    {
+        if (in_array($asked, ['private', 'link', 'public'], true)) return $asked;
+
+        return $property?->visibility === 'featured' ? 'featured' : 'public';
     }
 
     private function media(Request $request, Property $property): void

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Agency, PlatformEntry};
+use App\Models\{Agency, PlatformCategory, PlatformEntry};
 use App\Support\Audit;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -38,6 +38,8 @@ class FinanceController extends Controller
         return view('platform.finance', [
             'entries' => $entries, 'totals' => $totals, 'byCategory' => $byCategory, 'from' => $from, 'to' => $to,
             'agencies' => Agency::orderBy('name')->get(['id', 'name']),
+            'kinds' => PlatformCategory::orderByDesc('is_system')->orderBy('name')->get()->groupBy('direction'),
+            'used' => PlatformEntry::selectRaw('direction, category, COUNT(*) as total')->groupBy('direction', 'category')->get()->mapWithKeys(fn ($row) => [$row->direction.':'.$row->category => (int) $row->total]),
         ]);
     }
 
@@ -45,7 +47,7 @@ class FinanceController extends Controller
     {
         $d = $r->validate([
             'direction' => 'required|in:in,out',
-            'category' => ['required', Rule::in(array_merge(PlatformEntry::IN, PlatformEntry::OUT))],
+            'category' => 'required|max:60',
             'amount' => 'required|numeric|min:0.01',
             'currency' => ['required', Rule::in(config('rahnuma.currencies'))],
             'entry_date' => 'required|date',
@@ -53,8 +55,8 @@ class FinanceController extends Controller
             'reference' => 'nullable|max:120',
             'notes' => 'nullable|max:1000',
         ]);
-        // the kind of entry must belong to its side
-        if (! in_array($d['category'], $d['direction'] === 'in' ? PlatformEntry::IN : PlatformEntry::OUT, true)) {
+        // the kind must be one of the kinds of its side
+        if (! PlatformCategory::where('direction', $d['direction'])->where('name', $d['category'])->exists()) {
             return back()->withErrors(['category' => __('Choose a kind that fits money in or money out.')])->withInput();
         }
 
@@ -70,5 +72,51 @@ class FinanceController extends Controller
         $entry->delete();
 
         return back()->with('success', __('Entry deleted.'));
+    }
+
+    // ------------------------------------------------------------- the kinds
+
+    public function storeKind(Request $r)
+    {
+        $d = $this->kind($r);
+        $kind = PlatformCategory::create($d);
+        Audit::log('money.kind_added', $kind, [], $d);
+
+        return back()->with('success', __('Kind added.'));
+    }
+
+    /** A new name is also written to the entries that carry the old one, so totals stay together. */
+    public function updateKind(Request $r, PlatformCategory $kind)
+    {
+        abort_if($kind->is_system, 403, __('This kind is used by the system and cannot be changed.'));
+        $d = $this->kind($r, $kind);
+        $old = $kind->name;
+        $kind->update(['name' => $d['name']]);
+        PlatformEntry::where('direction', $kind->direction)->where('category', $old)->update(['category' => $d['name']]);
+        Audit::log('money.kind_renamed', $kind, ['name' => $old], ['name' => $d['name']]);
+
+        return back()->with('success', __('Kind updated.'));
+    }
+
+    /** Entries already recorded keep the name of a deleted kind. */
+    public function destroyKind(PlatformCategory $kind)
+    {
+        abort_if($kind->is_system, 403, __('This kind is used by the system and cannot be changed.'));
+        Audit::log('money.kind_deleted', $kind, ['name' => $kind->name, 'direction' => $kind->direction]);
+        $kind->delete();
+
+        return back()->with('success', __('Kind deleted.'));
+    }
+
+    private function kind(Request $r, ?PlatformCategory $kind = null): array
+    {
+        $d = $r->validate(['direction' => $kind ? 'nullable' : 'required|in:in,out', 'name' => 'required|max:60']);
+        $d['direction'] = $kind?->direction ?? $d['direction'];
+        $d['name'] = trim($d['name']);
+
+        $taken = PlatformCategory::where('direction', $d['direction'])->where('name', $d['name'])->when($kind, fn ($q) => $q->where('id', '!=', $kind->id))->exists();
+        if ($taken) abort(back()->withErrors(['name' => __('This kind already exists.')])->withInput());
+
+        return $d;
     }
 }

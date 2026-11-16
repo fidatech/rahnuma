@@ -56,7 +56,7 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
         const SizedBox(height: 10),
         DropdownButtonFormField<String>(value: currency, isExpanded: true, decoration: InputDecoration(labelText: 'Currency'.tr), items: ['AFN','USD'].map((x) => DropdownMenuItem(value: x, child: Text(x))).toList(), onChanged: (v) => setState(() => currency = v!)),
         const SizedBox(height: 10),
-        DropdownButtonFormField<String>(value: visibility, isExpanded: true, decoration: InputDecoration(labelText: 'Visibility'.tr), items: ['private','link','public','featured'].map((x) => DropdownMenuItem(value: x, child: Text(L.label(x)))).toList(), onChanged: (v) => setState(() => visibility = v!)),
+        DropdownButtonFormField<String>(value: visibility, isExpanded: true, decoration: InputDecoration(labelText: 'Visibility'.tr), items: ['private','link','public'].map((x) => DropdownMenuItem(value: x, child: Text(L.label(x)))).toList(), onChanged: (v) => setState(() => visibility = v!)),
       ])),
       const SizedBox(height: 12),
       SoftCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [SectionLabel('Location'.tr), const SizedBox(height: 12), TextField(controller: address, decoration: InputDecoration(labelText: 'Address'.tr), maxLines: 2)])),

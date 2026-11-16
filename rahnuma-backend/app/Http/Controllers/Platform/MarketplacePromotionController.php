@@ -3,49 +3,73 @@
 namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Agency, Property};
+use App\Models\{Agency, PlatformEntry, Promotion, Property};
+use App\Services\PromotionService;
+use App\Support\Audit;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
+/** Sponsored and featured placements: given by the administrator, paid by the office. */
 class MarketplacePromotionController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, PromotionService $promotions)
     {
-        $query = Property::withoutGlobalScopes()->with(['agency:id,name,slug','coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order','province:id,name_en,name_fa,name_ps'])
-            ->whereIn('visibility', ['public','featured'])
-            ->whereIn('status', ['available','active']);
-        if ($request->filled('q')) {
-            $query->where(fn($q) => $q->where('title','like','%'.$request->q.'%')->orWhere('code','like','%'.$request->q.'%'));
-        }
+        $promotions->expire();
+
+        $relations = ['agency:id,name,slug', 'coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order', 'province:id,name_en,name_fa,name_ps'];
+        $public = fn () => Property::withoutGlobalScopes()->whereIn('visibility', ['public', 'featured'])->whereIn('status', ['available', 'active']);
+
+        $month = [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()];
+
         return view('platform.marketplace', [
-            'properties' => $query->latest()->paginate(24)->withQueryString(),
-            'sponsoredCount' => Property::withoutGlobalScopes()->where('is_sponsored', true)->where(fn($q)=>$q->whereNull('sponsored_until')->orWhere('sponsored_until','>',now()))->count(),
-            'featuredAgencies' => Agency::where('marketplace_featured', true)->count(),
-            'agencies' => Agency::where('is_active',1)->where('marketplace_enabled',1)->withCount(['properties as public_properties_count'=>fn($q)=>$q->whereIn('visibility',['public','featured'])->whereIn('status',['available','active'])])->orderByDesc('marketplace_featured')->orderByDesc('public_properties_count')->limit(12)->get(),
+            'sponsored' => Property::withoutGlobalScopes()->with($relations)->where('is_sponsored', 1)->orderBy('sponsored_until')->get(),
+            'featured' => Property::withoutGlobalScopes()->with($relations)->where('visibility', 'featured')->orderBy('featured_until')->get(),
+            'featuredOffices' => Agency::where('marketplace_featured', 1)->orderBy('marketplace_featured_until')->get(),
+            'properties' => $public()->with($relations)
+                ->when($request->filled('q'), fn ($q) => $q->where(fn ($w) => $w->where('title', 'like', '%'.$request->q.'%')->orWhere('code', 'like', '%'.$request->q.'%')))
+                ->when($request->filled('agency_id'), fn ($q) => $q->where('agency_id', $request->agency_id))
+                ->latest()->paginate(15)->withQueryString(),
+            'offices' => Agency::where('is_active', 1)->where('marketplace_enabled', 1)->orderBy('name')->get(['id', 'name', 'slug', 'logo_path', 'marketplace_featured', 'marketplace_featured_until', 'license_number']),
+            'income' => PlatformEntry::where('direction', 'in')->whereIn('category', ['sponsorship', 'featuring'])->whereBetween('entry_date', $month)
+                ->selectRaw('currency, SUM(amount) as total')->groupBy('currency')->pluck('total', 'currency'),
+            'history' => Promotion::with(['agency:id,name,slug', 'property:id,title,code'])->latest()->limit(15)->get(),
         ]);
     }
 
-    public function sponsor(Request $request, Property $property)
+    public function store(Request $request, PromotionService $promotions)
     {
-        $data = $request->validate(['days' => 'nullable|integer|min:1|max:365']);
-        $property->update([
-            'is_sponsored' => true,
-            'sponsored_until' => now()->addDays($data['days'] ?? 30),
+        $d = $request->validate([
+            'kind' => ['required', Rule::in(Promotion::KINDS)],
+            'property_id' => 'nullable|integer',
+            'agency_id' => 'nullable|integer',
+            'days' => 'required|integer|min:1|max:365',
+            'amount' => 'nullable|numeric|min:0',
+            'currency' => ['required', Rule::in(config('rahnuma.currencies'))],
+            'notes' => 'nullable|max:500',
         ]);
-        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v9');
-        return back()->with('success', __('Property is now sponsored on the marketplace.'));
+
+        $target = $d['kind'] === 'featured_office'
+            ? Agency::findOrFail($d['agency_id'] ?? 0)
+            : Property::withoutGlobalScopes()->whereIn('visibility', ['public', 'featured'])->findOrFail($d['property_id'] ?? 0);
+
+        $promotion = $promotions->start($d['kind'], $target, (int) $d['days'], (float) ($d['amount'] ?? 0), $d['currency'], $d['notes'] ?? null);
+        Audit::log('promotion.'.$d['kind'], $target, [], ['days' => (int) $d['days'], 'amount' => (float) ($d['amount'] ?? 0), 'currency' => $d['currency'], 'until' => $promotion->ends_at->toDateString()]);
+
+        return back()->with('success', match ($d['kind']) {
+            'sponsored' => __('Property is now sponsored on the marketplace.'),
+            'featured' => __('Property is now featured on the marketplace.'),
+            default => __('Rahnama is now featured on the marketplace.'),
+        });
     }
 
-    public function unsponsor(Property $property)
+    public function stop(Request $request, PromotionService $promotions)
     {
-        $property->update(['is_sponsored' => false, 'sponsored_until' => null]);
-        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v9');
-        return back()->with('success', __('Sponsored placement removed.'));
-    }
+        $d = $request->validate(['kind' => ['required', Rule::in(Promotion::KINDS)], 'id' => 'required|integer']);
+        $target = $d['kind'] === 'featured_office' ? Agency::findOrFail($d['id']) : Property::withoutGlobalScopes()->findOrFail($d['id']);
 
-    public function toggleAgency(Agency $agency)
-    {
-        $agency->update(['marketplace_featured' => !$agency->marketplace_featured]);
-        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v9');
-        return back()->with('success', $agency->marketplace_featured ? __('Rahnama is now featured on the marketplace.') : __('Featured Rahnama placement removed.'));
+        $promotions->stop($d['kind'], $target);
+        Audit::log('promotion.stopped', $target, [], ['kind' => $d['kind']]);
+
+        return back()->with('success', __('Placement ended.'));
     }
 }

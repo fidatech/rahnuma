@@ -81,7 +81,6 @@ class AgencyController extends Controller
         $d['is_verified'] = $r->boolean('is_verified');
         $d['is_active'] = $r->boolean('is_active');
         $d['marketplace_enabled'] = $r->boolean('marketplace_enabled');
-        $d['marketplace_featured'] = $r->boolean('marketplace_featured');
 
         $old = $agency->only(array_keys($d));
         $agency->update($d);

@@ -98,4 +98,9 @@ government mode, commission rules), system status and the administrator's own ac
 can also open the regulatory panel.
 
 After pulling this version run `php artisan migrate` once: it adds the `settings` and `platform_entries`
-tables. Settings saved in the panel take the place of the matching `.env` values.
+tables, and the tables for promotions and the kinds of money in and out. Settings saved in the panel take
+the place of the matching `.env` values.
+
+Sponsored and featured placements are sold by the administrator on the Promotions page: an office cannot
+feature or sponsor its own listing. Each placement runs for a number of days and its fee is written to
+money in.

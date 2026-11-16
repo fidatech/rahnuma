@@ -24,6 +24,7 @@ class MarketplaceController extends Controller
     public function home()
     {
         $payload = Cache::remember('rahnuma:marketplace:home:v9', 120, function () {
+            app(\App\Services\PromotionService::class)->expire();
             $base = $this->publicBase();
             $popularRaw = (clone $base)
                 ->selectRaw('province_id, COUNT(*) as listings_count')

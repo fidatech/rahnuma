@@ -71,7 +71,7 @@
     const type = response.headers.get('content-type') || '';
     if (!type.includes('text/html')) throw new Error('non-html-response');
     const html = await response.text();
-    const result = { html, url: response.url || url };
+    const result = { html, url: response.url || url, ok: response.ok, redirected: response.redirected };
     if (method === 'GET' && response.ok) cacheSet(pageCache, result.url, result);
     return result;
   };
@@ -198,7 +198,15 @@
     quickCache.clear();
     try {
       const result = await fetchHtml(form.action || location.href, { method, body: new FormData(form) });
-      syncDocument(result.html, result.url, { push: true, scroll: true });
+      if (!result.ok) {
+        // the server answered with an error page: show it as it is. Loading the address of the
+        // form again would ask for it with GET and hide the real error behind "method not allowed".
+        document.open(); document.write(result.html); document.close();
+        return;
+      }
+      // an answer without a redirect belongs to the page we are on, not to the address of the form
+      const stayed = !result.redirected;
+      syncDocument(result.html, stayed ? location.href : result.url, { push: !stayed, scroll: true });
     } catch (_) {
       form.submit();
     } finally {

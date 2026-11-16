@@ -32,6 +32,7 @@ class TenantController extends Controller
             'title'=>'required','property_type'=>'required','transaction_type'=>'required','visibility'=>'required','status'=>'required','currency'=>'required',
             'price'=>'nullable|numeric','monthly_rent'=>'nullable|numeric','address'=>'nullable'
         ]);
+        if (! in_array($data['visibility'], ['private','link','public'], true)) $data['visibility'] = 'public'; // featured is given by the administrator
         return Property::create($data + ['code'=>'PR-'.date('ymd').'-'.random_int(1000,9999),'published_at'=>in_array($data['visibility'],['public','featured'], true)?now():null]);
     }
 

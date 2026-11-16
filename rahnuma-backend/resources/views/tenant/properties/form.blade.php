@@ -35,7 +35,7 @@
         <div class="row g-3">
             <div class="col-12 col-md-4"><label class="form-label" for="studio_property_type">{{ __('Property type') }}</label><select class="form-select" name="property_type" id="studio_property_type">@foreach(config('rahnuma.property_types') as $x)<option value="{{ $x }}" data-label="{{ enum_label($x) }}" @selected(old('property_type',$property->property_type)===$x)>{{ enum_label($x) }}</option>@endforeach</select></div>
             <div class="col-12 col-md-4"><label class="form-label">{{ __('Status') }}</label><select class="form-select" name="status">@foreach(['available','active','rented','sold','mortgaged','inactive'] as $x)<option value="{{ $x }}" @selected(old('status',$property->status?:'available')===$x)>{{ enum_label($x) }}</option>@endforeach</select></div>
-            <div class="col-12 col-md-4"><label class="form-label" for="studio_visibility">{{ __('Visibility') }}</label><select class="form-select" name="visibility" id="studio_visibility">@foreach(['private','link','public','featured'] as $x)<option value="{{ $x }}" @selected(old('visibility',$property->visibility?:'private')===$x)>{{ enum_label($x) }}</option>@endforeach</select></div>
+            <div class="col-12 col-md-4"><label class="form-label" for="studio_visibility">{{ __('Visibility') }}</label><select class="form-select" name="visibility" id="studio_visibility">@foreach(['private','link','public'] as $x)<option value="{{ $x }}" @selected(old('visibility',$property->visibility?:'private')===$x)>{{ enum_label($x) }}</option>@endforeach @if($property->visibility==='featured')<option value="featured" selected>{{ __('Featured (given by the administrator)') }}</option>@endif</select><div class="form-text">{{ __('Featured and sponsored placements are paid and given by the administrator.') }}</div></div>
         </div>
     </div>
 </div>
@@ -131,7 +131,7 @@
             <div class="card-body">
                 <div class="small text-muted text-uppercase fw-semibold mb-1">{{ __('Publishing') }}</div>
                 <h5 id="studio_preview_visibility">{{ enum_label($property->visibility ?: 'private') }}</h5>
-                <p class="small text-muted mb-0">{{ __('A private property stays inside your office. Public and featured properties can appear on the marketplace.') }}</p>
+                <p class="small text-muted mb-0">{{ __('A private property stays inside your office. Public properties appear on the marketplace.') }}</p>
             </div>
         </div>
         <div class="card">

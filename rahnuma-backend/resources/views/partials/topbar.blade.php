@@ -14,6 +14,7 @@
     <div class="topbar-brand" aria-hidden="true">{{ $shell === 'workspace' ? ($user->agency?->name ?: config('app.name')) : config('app.name') }}</div>
 
     <div class="topbar-right">
+        <a class="topbar-market" href="{{ route('home') }}" data-native title="{{ __('Property marketplace') }}"><x-icon name="store" /><span>{{ __('Marketplace') }}</span></a>
         @include('partials.language-menu')
 
         <button class="topbar-icon" type="button" data-theme-toggle title="{{ __('Light / dark mode') }}"><x-icon name="moon" /></button>

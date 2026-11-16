@@ -2,7 +2,7 @@
 @section('title', __('All properties'))
 @section('workspace')
 <x-page-header :title="__('All properties')" icon="building" :crumbs="[[__('Platform'), route('platform.dashboard')], [__('All properties')]]" :subtitle="__('Every listing of every office. Hide, publish, feature or delete any of them.')">
-    <a class="btn btn-outline-soft" href="{{ route('platform.marketplace') }}"><x-icon name="bullhorn" class="me-1" /> {{ __('Marketplace promotions') }}</a>
+    <a class="btn btn-outline-soft" href="{{ route('platform.marketplace') }}"><x-icon name="bullhorn" class="me-1" /> {{ __('Promotions') }}</a>
 </x-page-header>
 
 <div class="row g-3 mb-3">
@@ -40,9 +40,10 @@
                     <td><span class="badge-soft {{ status_tone($p->visibility) }}">{{ enum_label($p->visibility) }}</span> <span class="badge-soft {{ status_tone($p->status) }}">{{ enum_label($p->status) }}</span>@if ($p->is_sponsored) <span class="badge-soft warning"><x-icon name="bullhorn" /></span>@endif</td>
                     <td class="text-end text-nowrap">
                         <div class="rh-actions">
-                            @foreach (['private' => ['eye-slash', 'Hide'], 'public' => ['store', 'Publish'], 'featured' => ['star', 'Feature']] as $v => [$icon, $label])
+                            @foreach (['private' => ['eye-slash', 'Hide'], 'public' => ['store', 'Publish']] as $v => [$icon, $label])
                                 @if ($p->visibility !== $v)<form method="post" action="{{ route('platform.properties.visibility', $p) }}">@csrf<input type="hidden" name="visibility" value="{{ $v }}"><button class="btn btn-sm btn-light-secondary" title="{{ __($label) }}"><x-icon :name="$icon" /> <span>{{ __($label) }}</span></button></form>@endif
                             @endforeach
+                            @if (in_array($p->visibility, ['public', 'featured'], true))<a class="btn btn-sm btn-soft-primary" href="{{ route('platform.marketplace', ['q' => $p->code]) }}" title="{{ __('Sell a placement') }}"><x-icon name="bullhorn" /> <span>{{ __('Promote') }}</span></a>@endif
                             <form method="post" action="{{ route('platform.properties.destroy', $p) }}" data-confirm="{{ __('Delete this property?') }}" data-confirm-text="{{ $p->code }} · {{ $p->title }}" data-confirm-ok="{{ __('Delete') }}">@csrf @method('DELETE')<button class="btn btn-sm btn-soft-danger" title="{{ __('Delete') }}"><x-icon name="trash" /></button></form>
                         </div>
                     </td>

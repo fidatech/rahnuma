@@ -38,7 +38,7 @@
                 <div class="col-12 col-md-6"><label class="form-label">{{ __('Subscription plan') }}</label><select class="form-select" name="plan_id" data-placeholder="{{ __('No plan') }}"><option value=""></option>@foreach ($plans as $p)<option value="{{ $p->id }}" @selected(old('plan_id', $agency->plan_id) == $p->id)>{{ $p->name }}</option>@endforeach</select></div>
                 <div class="col-12 col-md-6"><label class="form-label">{{ __('Trial ends') }}</label><input class="form-control" type="date" name="trial_ends_at" value="{{ old('trial_ends_at', $agency->trial_ends_at?->format('Y-m-d')) }}" dir="ltr"></div>
                 <div class="col-12"><div class="rh-switches">
-                    @foreach (['is_active' => 'Office can sign in and work', 'is_verified' => 'Show the verified mark', 'marketplace_enabled' => 'Listings appear on the marketplace', 'marketplace_featured' => 'Featured on the home page'] as $field => $label)
+                    @foreach (['is_active' => 'Office can sign in and work', 'is_verified' => 'Show the verified mark', 'marketplace_enabled' => 'Listings appear on the marketplace'] as $field => $label)
                         <label class="form-check form-switch"><span>{{ __($label) }}</span><input class="form-check-input" type="checkbox" role="switch" name="{{ $field }}" value="1" @checked(old($field, $agency->$field))></label>
                     @endforeach
                 </div></div>

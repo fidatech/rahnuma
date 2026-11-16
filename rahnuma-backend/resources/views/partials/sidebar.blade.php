@@ -36,11 +36,11 @@
             ['heading' => 'Money'],
             ['Plans', 'layer-group', route('platform.plans'), $is('platform.plans')],
             ['Subscriptions', 'receipt', route('platform.subscriptions'), $is('platform.subscriptions')],
+            ['Promotions', 'bullhorn', route('platform.marketplace'), $is('platform.marketplace')],
             ['Money in & out', 'sack-dollar', route('platform.finance'), $is('platform.finance')],
-            ['heading' => 'Marketplace'],
+            ['heading' => 'Listings & deals'],
             ['All properties', 'building', route('platform.properties'), $is('platform.properties')],
             ['All deals', 'handshake', route('platform.transactions'), $is('platform.transactions')],
-            ['Marketplace Promotions', 'bullhorn', route('platform.marketplace'), $is('platform.marketplace')],
             ['heading' => 'System'],
             ['Locations', 'map-location-dot', route('platform.locations'), $is('platform.locations')],
             ['Audit log', 'clipboard-check', route('platform.audit'), $is('platform.audit')],
@@ -93,10 +93,6 @@
                     </li>
                 @endif
             @endforeach
-            <li class="menu-heading"><span>{{ __('Marketplace') }}</span></li>
-            <li class="menu-item">
-                <a class="menu-link" href="{{ route('home') }}"><span class="menu-icon"><x-icon name="store" /></span><span class="menu-text">{{ __('Property marketplace') }}</span></a>
-            </li>
         </ul>
     </div>
 </aside>
