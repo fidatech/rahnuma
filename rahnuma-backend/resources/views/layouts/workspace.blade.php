@@ -24,6 +24,12 @@
                 @if ($shell === 'government' && ! config('rahnuma.government_mode'))
                     <div class="alert alert-warning d-flex gap-2 align-items-start"><x-icon name="triangle-exclamation" class="mt-1" /><div><strong>{{ __('Private demonstration mode.') }}</strong> {{ __('This regulatory workspace is not represented as Ministry-approved or official.') }}</div></div>
                 @endif
+                @if (session('impersonator_id'))
+                    <form class="rh-impersonate" method="post" action="{{ route('impersonate.stop') }}" data-native>@csrf
+                        <span><x-icon name="user-shield" /> {{ __('You are signed in as :name. What you do here is done in their name.', ['name' => auth()->user()->name]) }}</span>
+                        <button class="btn btn-sm btn-gold">{{ __('Back to administrator') }}</button>
+                    </form>
+                @endif
                 @yield('workspace')
             </div>
         </main>

@@ -89,3 +89,13 @@ The bootstrap script generates the native Android/iOS runner folders with the Fl
 ## Safety / government status
 
 `GOVERNMENT_MODE=false` is the default. Private deployments must not represent internal records as official Ministry verification until a written government integration/authorization exists.
+## Administrator panel
+
+The platform administrator (`/platform`) manages the whole system: offices (with a page per office and
+"sign in as this office"), users of every kind, plans, subscriptions, money in and money out of the
+platform, every property and deal, locations, the audit log, settings (contact details, official emblem,
+government mode, commission rules), system status and the administrator's own account. The administrator
+can also open the regulatory panel.
+
+After pulling this version run `php artisan migrate` once: it adds the `settings` and `platform_entries`
+tables. Settings saved in the panel take the place of the matching `.env` values.

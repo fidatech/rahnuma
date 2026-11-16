@@ -35,3 +35,8 @@ select2-results__option--selected select2-results__group
 modal-open modal-backdrop show fade is-busy is-ready app-ready is-scrolled no-large-title sidebar-open
 table-cards table-scroll cell-primary cell-actions cell-long sheet-backdrop
 is-active is-done is-submitting conditional-hidden collapsed
+
+# icons of the administrator panel (sidebar arrays and icons chosen by a condition)
+#s-layer-group #s-receipt #s-sack-dollar #s-map-location-dot #s-clipboard-check #s-gear #s-server #s-id-badge #s-landmark
+#s-users #s-building #s-handshake #s-bullhorn #s-building-user #s-circle-arrow-down #s-circle-arrow-up #s-ban
+#s-eye-slash #s-store #s-star #s-user-plus #s-pen #s-user-shield #s-trash #s-key #s-rotate #s-broom #s-scale-balanced

@@ -150,6 +150,60 @@ form.is-submitting { opacity: .65; pointer-events: none; }
 .app-topbar { border-bottom: 3px solid var(--gov-gold); }
 .app-main .page-header { border-inline-start: 4px solid var(--gov-gold); }
 
+/* ------------------------------------------------------ administrator panel */
+.rh-impersonate { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; margin-bottom: 18px; border-radius: 14px; color: #fff; background: linear-gradient(135deg, var(--gov-navy-2), var(--gov-navy)); border: 1px solid rgba(227, 192, 79, .6); }
+.rh-impersonate > span { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; }
+.rh-impersonate .fi { color: var(--gov-gold-2); }
+.rh-list { display: flex; flex-direction: column; }
+.rh-list-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); color: var(--text); text-decoration: none; min-width: 0; }
+.rh-list-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.rh-list-row:first-child { padding-top: 0; }
+a.rh-list-row:hover strong { color: var(--primary); }
+.rh-list-row strong { color: var(--heading); font-size: 13.5px; }
+.rh-list-row small { color: var(--muted); font-size: 12.5px; }
+.rh-list-icon { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 10px; display: grid; place-items: center; font-size: 14px; background: var(--primary-soft); color: var(--primary); }
+.rh-list-icon.is-amber { background: rgba(244, 165, 28, .15); color: #b97a06; }
+.rh-list-icon.is-blue { background: rgba(14, 165, 233, .13); color: #0b7fb8; }
+.rh-list-icon.is-green { background: rgba(21, 128, 61, .12); color: #15803d; }
+.rh-list-icon.is-red { background: rgba(220, 38, 38, .1); color: #dc2626; }
+.rh-actions { display: inline-flex; flex-wrap: nowrap; justify-content: flex-end; gap: 6px; }
+.rh-actions form { margin: 0; }
+.rh-actions .btn { display: inline-flex; align-items: center; gap: 6px; }
+.rh-switches { border: 1px solid var(--border); border-radius: 12px; padding: 2px 14px; }
+.rh-switches .form-switch { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 46px; margin: 0; padding: 6px 0; cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--heading); }
+.rh-switches .form-switch + .form-switch { border-top: 1px dashed var(--border); }
+.rh-switches .form-check-input { float: none; margin: 0; flex: 0 0 auto; width: 2.4em; height: 1.3em; cursor: pointer; }
+.rh-danger { border-color: rgba(220, 38, 38, .35); }
+.rh-danger .set-icon { background: rgba(220, 38, 38, .1); color: #dc2626; }
+.rh-plan { border-top: 4px solid var(--gov-gold); }
+.rh-plan.is-off { opacity: .7; border-top-color: var(--border); }
+.rh-plan-price strong { font-size: 30px; font-weight: 800; color: var(--primary); letter-spacing: -.5px; }
+.rh-plan-price span { font-size: 13px; font-weight: 700; color: var(--muted); }
+.rh-plan-price small { display: block; font-size: 12.5px; color: var(--muted); }
+[dir="rtl"] .rh-plan-price { text-align: right; }
+.rh-plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 13.5px; }
+.rh-plan-list li { display: flex; align-items: center; gap: 9px; }
+.rh-plan-list .fi { color: var(--primary); width: 16px; }
+.rh-thumb { width: 52px; height: 40px; flex: 0 0 52px; border-radius: 9px; overflow: hidden; display: grid; place-items: center; background: var(--hover); color: var(--muted); }
+.rh-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.rh-money { border-top: 4px solid var(--gov-gold); }
+.rh-money-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.rh-money-head strong { font-size: 20px; font-weight: 800; color: var(--heading); }
+.rh-money-head span { font-size: 12.5px; color: var(--muted); }
+.rh-money-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.rh-money-row > div { padding: 12px 14px; border-radius: 12px; background: var(--hover); min-width: 0; }
+.rh-money-row span { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.rh-money-row strong { display: block; margin-top: 4px; font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+[dir="rtl"] .rh-money-row strong { text-align: right; }
+.rh-money-row .is-in strong, .rh-money-row .is-in .fi { color: #15803d; }
+.rh-money-row .is-out strong, .rh-money-row .is-out .fi { color: #dc2626; }
+.rh-money-row .is-net { background: var(--primary-soft); }
+.rh-emblem-preview { height: 56px; width: auto; border-radius: 8px; border: 1px solid var(--border); padding: 4px; background: #fff; }
+@media (max-width: 767.98px) {
+    .rh-money-row { grid-template-columns: minmax(0, 1fr); }
+    .rh-actions .btn span { display: none; }
+}
+
 /* ---------------------------------------------------------------- sign in */
 .rh-auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); background: var(--bg); }
 .rh-auth-side { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 36px; padding: 44px 56px; color: #fff; border-inline-end: 4px solid var(--gov-gold);
