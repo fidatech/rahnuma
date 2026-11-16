@@ -3,7 +3,7 @@
     $amount=$property->transaction_type==='rent'?$property->monthly_rent:$property->price;
 @endphp
 <div class="rh-quick-hero">
-    @if($cover)<img src="{{ asset('storage/'.($cover->thumbnail_path ?: $cover->path)) }}" alt="{{ $property->title }}" decoding="async">@else<span class="rh-prop-empty"><x-icon name="building" /></span>@endif
+    @if($cover)<x-marketplace.photo :src="asset('storage/'.($cover->thumbnail_path ?: $cover->path))" :alt="$property->title" :code="$property->code" priority />@else<span class="rh-prop-empty"><x-icon name="building" /></span>@endif
     <span class="rh-prop-badges">@if($property->is_sponsored)<span class="badge-soft warning"><x-icon name="bullhorn" /> {{ __('Sponsored') }}</span>@elseif($property->visibility==='featured')<span class="badge-soft primary"><x-icon name="star" /> {{ __('Featured') }}</span>@endif<span class="badge-soft secondary">{{ deal_label($property->transaction_type) }}</span></span>
 </div>
 <div class="modal-body">

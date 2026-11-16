@@ -22,7 +22,7 @@
 </div>
 
 <div class="rh-gallery {{ $property->media->count()<2 ? 'is-single' : '' }}">
-    @forelse($property->media->take(5) as $i=>$m)<img class="{{ $i===0?'is-primary':'' }}" src="{{ asset('storage/'.$m->path) }}" alt="{{ $property->title }}" decoding="async" @if($i===0) fetchpriority="high" @else loading="lazy" @endif>@empty<div class="rh-prop-empty"><x-icon name="image" /><small>{{ __('Photos coming soon') }}</small></div>@endforelse
+    @forelse($property->media->take(5) as $i=>$m)<x-marketplace.photo :class="$i===0?'is-primary':''" :src="asset('storage/'.$m->path)" :alt="$property->title" :code="$i===0?$property->code:null" :priority="$i===0" :brand="$i===0" />@empty<div class="rh-prop-empty"><x-icon name="image" /><small>{{ __('Photos coming soon') }}</small></div>@endforelse
 </div>
 
 <div class="row g-3">

@@ -190,7 +190,8 @@ class PropertyController extends Controller
         $hasCover = $property->media()->where('is_cover', true)->exists();
 
         foreach ($request->file('photos') as $index => $file) {
-            $path = $file->store('properties', 'public');
+            // lighter file, same pixel size
+            $path = $optimizer->optimize($file->store('properties', 'public'));
             $thumbnail = $optimizer->thumbnail($path);
 
             PropertyMedia::create([
