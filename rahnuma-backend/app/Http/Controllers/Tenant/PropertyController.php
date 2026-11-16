@@ -15,7 +15,7 @@ class PropertyController extends Controller
         $query = Property::with([
             'owner:id,name,phone',
             'coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order',
-            'province:id,name_en,name_fa',
+            'province:id,name_en,name_fa,name_ps',
         ]);
 
         if ($request->filled('q')) {
@@ -64,7 +64,7 @@ class PropertyController extends Controller
 
         $this->syncPrimaryOwner($property);
         $this->media($request, $property);
-        Cache::forget('rahnuma:marketplace:home:v8');
+        Cache::forget('rahnuma:marketplace:home:v9');
 
         return redirect()->route('tenant.properties.edit', $property)->with('success', __('Property created. Its primary owner is linked to this property record.'));
     }
@@ -85,7 +85,7 @@ class PropertyController extends Controller
 
         $this->syncPrimaryOwner($property);
         $this->media($request, $property);
-        Cache::forget('rahnuma:marketplace:home:v8');
+        Cache::forget('rahnuma:marketplace:home:v9');
 
         return back()->with('success', __('Property updated.'));
     }
@@ -93,13 +93,13 @@ class PropertyController extends Controller
     public function destroy(Property $property)
     {
         $property->delete();
-        Cache::forget('rahnuma:marketplace:home:v8');
+        Cache::forget('rahnuma:marketplace:home:v9');
         return back()->with('success', __('Property deleted.'));
     }
 
     public function quick(Property $property)
     {
-        $property->load(['owner:id,name,phone,whatsapp','coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order','province:id,name_en,name_fa','district:id,name_en,name_fa','area:id,name_en,name_fa']);
+        $property->load(['owner:id,name,phone,whatsapp','coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order','province:id,name_en,name_fa,name_ps','district:id,name_en,name_fa,name_ps','area:id,name_en,name_fa,name_ps']);
         return view('tenant.properties.quick', compact('property'));
     }
 
@@ -113,7 +113,7 @@ class PropertyController extends Controller
         return view('tenant.properties.form', [
             'property' => $property,
             'selectedOwner' => session()->hasOldInput('owner_id') ? Owner::find(session()->getOldInput('owner_id')) : $property->owner,
-            'provinces' => Cache::remember('rahnuma:provinces:list', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa'])),
+            'provinces' => Cache::remember('rahnuma:provinces:list:v2', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa','name_ps'])),
         ]);
     }
 

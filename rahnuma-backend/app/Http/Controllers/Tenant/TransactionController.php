@@ -45,7 +45,7 @@ class TransactionController extends Controller
             'selectedProperty' => $oldPropertyId ? Property::with('owner:id,name')->find($oldPropertyId) : null,
             'selectedOwner' => $oldOwnerId ? Owner::find($oldOwnerId) : null,
             'selectedCustomer' => $oldCustomerId ? Customer::find($oldCustomerId) : null,
-            'provinces' => \Illuminate\Support\Facades\Cache::remember('rahnuma:provinces:list', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa'])),
+            'provinces' => \Illuminate\Support\Facades\Cache::remember('rahnuma:provinces:list:v2', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa','name_ps'])),
         ]);
     }
 
@@ -168,7 +168,7 @@ class TransactionController extends Controller
             }
 
             $property->update(['status' => $type === 'sale' ? 'sold' : ($type === 'rent' ? 'rented' : 'mortgaged')]);
-            Cache::forget('rahnuma:marketplace:home:v8');
+            Cache::forget('rahnuma:marketplace:home:v9');
 
             $receivable = Account::where('code', '1200')->first();
             $incomeCode = $type === 'sale' ? '4000' : ($type === 'rent' ? '4010' : '4020');

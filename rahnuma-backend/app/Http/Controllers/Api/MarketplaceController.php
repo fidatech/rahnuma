@@ -13,9 +13,9 @@ class MarketplaceController extends Controller
         return [
             'agency:id,name,slug,logo_path,is_verified',
             'coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order',
-            'province:id,name_en,name_fa',
-            'district:id,name_en,name_fa',
-            'area:id,name_en,name_fa',
+            'province:id,name_en,name_fa,name_ps',
+            'district:id,name_en,name_fa,name_ps',
+            'area:id,name_en,name_fa,name_ps',
         ];
     }
 

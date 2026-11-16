@@ -18,12 +18,12 @@ class MarketplaceController extends Controller
 
     private function cardRelations(): array
     {
-        return ['agency:id,name,slug,logo_path,is_verified', 'coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order', 'province:id,name_en,name_fa', 'district:id,name_en,name_fa', 'area:id,name_en,name_fa'];
+        return ['agency:id,name,slug,logo_path,is_verified', 'coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order', 'province:id,name_en,name_fa,name_ps', 'district:id,name_en,name_fa,name_ps', 'area:id,name_en,name_fa,name_ps'];
     }
 
     public function home()
     {
-        $payload = Cache::remember('rahnuma:marketplace:home:v8', 120, function () {
+        $payload = Cache::remember('rahnuma:marketplace:home:v9', 120, function () {
             $base = $this->publicBase();
             $popularRaw = (clone $base)
                 ->selectRaw('province_id, COUNT(*) as listings_count')
@@ -39,7 +39,7 @@ class MarketplaceController extends Controller
                 'count' => (int) $x->listings_count,
             ])->filter(fn ($x) => $x['province'])->values();
 
-            $featuredAgencies = Agency::with('province:id,name_en,name_fa')
+            $featuredAgencies = Agency::with('province:id,name_en,name_fa,name_ps')
                 ->where('is_active', 1)
                 ->where('marketplace_enabled', 1)
                 ->withCount(['properties as public_properties_count' => fn ($q) => $q->whereIn('visibility', ['public', 'featured'])->whereIn('status', ['available', 'active'])])
@@ -54,7 +54,7 @@ class MarketplaceController extends Controller
                 'latest' => (clone $base)->with($this->cardRelations())->latest('published_at')->limit(8)->get(),
                 'apartments' => (clone $base)->with($this->cardRelations())->where('property_type', 'apartment')->latest('published_at')->limit(8)->get(),
                 'houses' => (clone $base)->with($this->cardRelations())->where('property_type', 'house')->latest('published_at')->limit(8)->get(),
-                'provinces' => Province::orderBy('name_en')->get(['id','name_en','name_fa']),
+                'provinces' => Province::orderBy('name_en')->get(['id','name_en','name_fa','name_ps']),
                 'popularLocations' => $popularLocations,
                 'featuredAgencies' => $featuredAgencies,
                 'marketStats' => [
@@ -98,9 +98,9 @@ class MarketplaceController extends Controller
 
         return view('marketplace.properties', [
             'properties' => $q->paginate(18)->withQueryString(),
-            'provinces' => Cache::remember('rahnuma:provinces:list', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa'])),
-            'districts' => $r->filled('province_id') ? District::where('province_id', $r->province_id)->orderBy('name_en')->get(['id','name_en','name_fa']) : collect(),
-            'areas' => $r->filled('district_id') ? Area::where('district_id', $r->district_id)->orderBy('name_en')->get(['id','name_en','name_fa']) : collect(),
+            'provinces' => Cache::remember('rahnuma:provinces:list:v2', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa','name_ps'])),
+            'districts' => $r->filled('province_id') ? District::where('province_id', $r->province_id)->orderBy('name_en')->get(['id','name_en','name_fa','name_ps']) : collect(),
+            'areas' => $r->filled('district_id') ? Area::where('district_id', $r->district_id)->orderBy('name_en')->get(['id','name_en','name_fa','name_ps']) : collect(),
         ]);
     }
 
@@ -161,13 +161,13 @@ class MarketplaceController extends Controller
 
     public function districts(Province $province)
     {
-        return response()->json(District::where('province_id', $province->id)->orderBy('name_en')->get(['id','name_en','name_fa'])->map(fn ($d) => ['id' => $d->id, 'text' => $d->name_en.' / '.$d->name_fa]))
+        return response()->json(District::where('province_id', $province->id)->orderBy('name_en')->get(['id','name_en','name_fa','name_ps'])->map(fn ($d) => ['id' => $d->id, 'text' => $d->name_en.' / '.$d->name_fa]))
             ->header('Cache-Control', 'public, max-age=3600');
     }
 
     public function areas(District $district)
     {
-        return response()->json(Area::where('district_id', $district->id)->orderBy('name_en')->get(['id','name_en','name_fa'])->map(fn ($a) => ['id' => $a->id, 'text' => $a->name_en.' / '.$a->name_fa]))
+        return response()->json(Area::where('district_id', $district->id)->orderBy('name_en')->get(['id','name_en','name_fa','name_ps'])->map(fn ($a) => ['id' => $a->id, 'text' => $a->name_en.' / '.$a->name_fa]))
             ->header('Cache-Control', 'public, max-age=3600');
     }
 

@@ -49,3 +49,16 @@ right-to-left layout for Dari and Pashto, language button in the top bar.
 
 Same system. While `GOVERNMENT_MODE=false` every regulatory page carries the
 "private demonstration mode" notice and nothing is presented as an official Ministry product.
+
+## Public site: the formal ("Rasmi") look
+
+The public marketplace and the sign-in page use a formal palette in the manner of a government
+service site: navy `#0a1f3d`, deep blue `#0c3b7a` and a gold accent `#c9a227`. It is set in
+`resources/assets/css/rahnuma.css` by re-pointing the colour variables of the template on
+`.public-body` and `.auth-body`, so buttons, links and badges follow; the workspaces keep the
+template colours. The layout is a navy utility bar (languages, light / dark), the header with a
+gold rule, the page, and a navy footer.
+
+Optional `.env` values, shown only when set: `CONTACT_PHONE`, `CONTACT_EMAIL`, `CONTACT_ADDRESS`,
+`CONTACT_HOURS`, and `OFFICIAL_EMBLEM` (a path under `public/`). An official emblem may be used
+only with the written permission of the authority it belongs to.

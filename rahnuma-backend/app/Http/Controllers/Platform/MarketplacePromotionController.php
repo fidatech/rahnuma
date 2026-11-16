@@ -10,7 +10,7 @@ class MarketplacePromotionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Property::withoutGlobalScopes()->with(['agency:id,name,slug','coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order','province:id,name_en,name_fa'])
+        $query = Property::withoutGlobalScopes()->with(['agency:id,name,slug','coverMedia:id,property_id,path,thumbnail_path,is_cover,sort_order','province:id,name_en,name_fa,name_ps'])
             ->whereIn('visibility', ['public','featured'])
             ->whereIn('status', ['available','active']);
         if ($request->filled('q')) {
@@ -31,21 +31,21 @@ class MarketplacePromotionController extends Controller
             'is_sponsored' => true,
             'sponsored_until' => now()->addDays($data['days'] ?? 30),
         ]);
-        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v8');
+        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v9');
         return back()->with('success', __('Property is now sponsored on the marketplace.'));
     }
 
     public function unsponsor(Property $property)
     {
         $property->update(['is_sponsored' => false, 'sponsored_until' => null]);
-        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v8');
+        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v9');
         return back()->with('success', __('Sponsored placement removed.'));
     }
 
     public function toggleAgency(Agency $agency)
     {
         $agency->update(['marketplace_featured' => !$agency->marketplace_featured]);
-        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v8');
+        \Illuminate\Support\Facades\Cache::forget('rahnuma:marketplace:home:v9');
         return back()->with('success', $agency->marketplace_featured ? __('Rahnama is now featured on the marketplace.') : __('Featured Rahnama placement removed.'));
     }
 }

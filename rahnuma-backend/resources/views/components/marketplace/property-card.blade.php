@@ -14,7 +14,7 @@
             </span>
         </span>
         <span class="card-body d-block">
-            <span class="d-block small text-muted mb-1"><x-icon name="location-dot" class="me-1" />{{ loc_name($p->area) ?: loc_name($p->district) ?: loc_name($p->province) ?: __('Afghanistan') }}</span>
+            <span class="rh-prop-meta"><span class="text-truncate"><x-icon name="location-dot" class="me-1" />{{ loc_name($p->area) ?: loc_name($p->district) ?: loc_name($p->province) ?: __('Afghanistan') }}</span>@if($p->code)<span class="rh-prop-code" dir="ltr" title="{{ __('Property code') }}">{{ $p->code }}</span>@endif</span>
             <strong class="rh-prop-title d-block">{{ $p->title }}</strong>
             <span class="rh-prop-price d-block" dir="ltr">{{ number_format((float)$amount) }} <small>{{ $p->currency }}{{ price_period($p->transaction_type) }}</small></span>
             <span class="rh-prop-facts">

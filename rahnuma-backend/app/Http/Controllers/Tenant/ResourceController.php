@@ -73,7 +73,7 @@ class ResourceController extends Controller
         ];
 
         $selectOptions = $this->selectOptions($resource);
-        $provinces = Cache::remember('rahnuma:provinces:list', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa']));
+        $provinces = Cache::remember('rahnuma:provinces:list:v2', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa','name_ps']));
         $stats = $this->stats($resource, $model);
 
         return view('tenant.resource', compact('resource','fields','items','lookupUrls','selectOptions','provinces','stats'));

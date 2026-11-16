@@ -15,7 +15,7 @@ class SettingsController extends Controller
         return view('tenant.settings', [
             'agency' => auth()->user()->agency,
             'user' => auth()->user(),
-            'provinces' => Cache::remember('rahnuma:provinces:list', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa'])),
+            'provinces' => Cache::remember('rahnuma:provinces:list:v2', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa','name_ps'])),
         ]);
     }
 
@@ -49,7 +49,7 @@ class SettingsController extends Controller
         if ($request->hasFile('cover')) $data['cover_path'] = $request->file('cover')->store('agencies/'.$agency->id.'/brand', 'public');
         $data['profile_completed_at'] = now();
         $agency->update($data);
-        Cache::forget('rahnuma:marketplace:home:v8');
+        Cache::forget('rahnuma:marketplace:home:v9');
 
         return back()->with('success', __('Company profile updated. The public marketplace profile now uses these details.'));
     }
@@ -72,7 +72,7 @@ class SettingsController extends Controller
             $data[$flag] = $request->boolean($flag);
         }
         auth()->user()->agency->update($data);
-        Cache::forget('rahnuma:marketplace:home:v8');
+        Cache::forget('rahnuma:marketplace:home:v9');
 
         return back()->with('success', __('System and marketplace preferences updated.'));
     }
