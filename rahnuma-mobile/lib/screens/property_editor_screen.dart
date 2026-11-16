@@ -54,7 +54,7 @@ class _PropertyEditorScreenState extends State<PropertyEditorScreen> {
         SectionLabel('Commercial terms'.tr), const SizedBox(height: 12),
         TextField(controller: price, keyboardType: TextInputType.number, textDirection: TextDirection.ltr, decoration: InputDecoration(labelText: transaction == 'rent' ? 'Monthly rent'.tr : 'Amount'.tr)),
         const SizedBox(height: 10),
-        DropdownButtonFormField<String>(value: currency, isExpanded: true, decoration: InputDecoration(labelText: 'Currency'.tr), items: ['AFN','USD','EUR','PKR','AED'].map((x) => DropdownMenuItem(value: x, child: Text(x))).toList(), onChanged: (v) => setState(() => currency = v!)),
+        DropdownButtonFormField<String>(value: currency, isExpanded: true, decoration: InputDecoration(labelText: 'Currency'.tr), items: ['AFN','USD'].map((x) => DropdownMenuItem(value: x, child: Text(x))).toList(), onChanged: (v) => setState(() => currency = v!)),
         const SizedBox(height: 10),
         DropdownButtonFormField<String>(value: visibility, isExpanded: true, decoration: InputDecoration(labelText: 'Visibility'.tr), items: ['private','link','public','featured'].map((x) => DropdownMenuItem(value: x, child: Text(L.label(x)))).toList(), onChanged: (v) => setState(() => visibility = v!)),
       ])),
