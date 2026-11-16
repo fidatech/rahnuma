@@ -40,3 +40,4 @@ is-active is-done is-submitting conditional-hidden collapsed
 #s-layer-group #s-receipt #s-sack-dollar #s-map-location-dot #s-clipboard-check #s-gear #s-server #s-id-badge #s-landmark
 #s-users #s-building #s-handshake #s-bullhorn #s-building-user #s-circle-arrow-down #s-circle-arrow-up #s-ban
 #s-eye-slash #s-store #s-star #s-user-plus #s-pen #s-user-shield #s-trash #s-key #s-rotate #s-broom #s-scale-balanced
+#s-paper-plane #s-file

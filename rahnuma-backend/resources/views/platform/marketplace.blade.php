@@ -19,6 +19,38 @@
     <div class="col-6 col-xl-3"><x-stat :label="__('Promotion income this month')" :value="$money($income)" icon="circle-arrow-down" tone="violet" /></div>
 </div>
 
+@php $methods = ['hesabpay' => 'HesabPay', 'aurumpay' => 'AurumPay', 'mobile_money' => __('Mobile money'), 'cash' => __('Cash')]; @endphp
+<div class="card rh-queue">
+    <div class="card-header"><div><h5 class="card-title mb-0">{{ __('Requests from offices') }} @if ($requests->isNotEmpty())<span class="rh-filter-count">{{ $requests->count() }}</span>@endif</h5><div class="small text-muted">{{ __('Check the payment, then approve to start the placement or reject with a reason.') }}</div></div><button class="btn btn-sm btn-outline-soft" type="button" data-modal-open="promo-prices"><x-icon name="gear" /> {{ __('Prices and payment details') }}</button></div>
+    <div class="card-body">
+        @if ($requests->isEmpty())
+            <x-workspace.empty icon="circle-check" :title="__('No request is waiting.')" :description="__('New requests from offices show here.')" />
+        @else
+        <table class="table table-hover w-100 align-middle">
+            <thead><tr><th>{{ __('Property') }}</th><th>{{ __('Office') }}</th><th>{{ __('Placement') }}</th><th>{{ __('Payment') }}</th><th class="text-end">{{ __('Amount') }}</th><th class="text-end">{{ __('Actions') }}</th></tr></thead>
+            <tbody>
+            @foreach ($requests as $q)
+                <tr>
+                    <td><strong class="d-block text-heading text-truncate" style="max-width:240px">{{ $q->property?->title ?: '—' }}</strong><span class="small text-muted" dir="ltr">{{ $q->property?->code }} · {{ $q->created_at?->format('Y-m-d H:i') }}</span></td>
+                    <td>@if ($q->agency)<a href="{{ route('platform.agencies.show', $q->agency) }}">{{ $q->agency->name }}</a>@else—@endif<span class="small text-muted d-block">{{ $q->requester?->name }}</span></td>
+                    <td><span class="badge-soft {{ $tones[$q->kind] ?? 'secondary' }}">{{ __($names[$q->kind] ?? $q->kind) }}</span><span class="small text-muted d-block">{{ __(':count days', ['count' => $q->days]) }}</span></td>
+                    <td>{{ $methods[$q->payment_method] ?? $q->payment_method }}@if ($q->payment_reference)<span class="small d-block" dir="ltr">{{ $q->payment_reference }}</span>@endif @if ($q->receipt_path)<a class="small fw-bold d-block" href="{{ route('platform.marketplace.requests.receipt', $q->id) }}" target="_blank" rel="noopener" data-native><x-icon name="file" /> {{ __('View receipt') }}</a>@endif @if ($q->notes)<span class="small text-muted d-block">{{ $q->notes }}</span>@endif</td>
+                    <td class="text-end fw-bold text-nowrap" dir="ltr">{{ number_format((float) $q->amount) }} {{ $q->currency }}</td>
+                    <td class="text-end text-nowrap"><div class="rh-actions">
+                        <button class="btn btn-sm rh-btn-in" type="button" data-modal="request-approve" data-action="{{ route('platform.marketplace.requests.approve', $q->id) }}" data-title="{{ $q->property?->code }} · {{ $q->property?->title }} · {{ __(':count days', ['count' => $q->days]) }} · {{ $methods[$q->payment_method] ?? $q->payment_method }} {{ $q->payment_reference }}" data-edit="{{ json_encode(['amount' => (float) $q->amount]) }}"><x-icon name="circle-check" /> <span>{{ __('Approve') }}</span></button>
+                        <button class="btn btn-sm btn-soft-danger" type="button" data-modal="request-reject" data-action="{{ route('platform.marketplace.requests.reject', $q->id) }}" data-title="{{ $q->property?->code }} · {{ $q->property?->title }}" data-edit="{}"><x-icon name="ban" /> <span>{{ __('Reject') }}</span></button>
+                    </div></td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+        @endif
+        @if ($reviewed->isNotEmpty())
+            <div class="rh-reviewed"><span>{{ __('Recently decided') }}</span>@foreach ($reviewed as $q)<span class="badge-soft {{ $q->status === 'approved' ? 'success' : 'danger' }}" title="{{ $q->admin_note }}">{{ $q->property?->code }} · {{ $q->agency?->name }} · {{ enum_label($q->status) }}</span>@endforeach</div>
+        @endif
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header"><div><h5 class="card-title mb-0">{{ __('Running placements') }}</h5><div class="small text-muted">{{ __('What is promoted on the marketplace right now, and until when.') }}</div></div></div>
     <div class="card-body">
@@ -131,6 +163,46 @@
 </div>
 @endsection
 @push('modals')
+<div class="rh-money-modal is-in">
+<x-workspace.drawer id="request-approve" :title="__('Approve request')" :description="__('Confirm the amount you received. The placement starts now and the amount goes to money in.')" icon="circle-check">
+<form method="post" action="#">@csrf
+<div class="modal-body d-grid gap-3">
+    <div class="rh-modal-subject" data-edit-title></div>
+    <fieldset class="rh-field"><legend>{{ __('Amount received') }} <span class="req">*</span></legend><div class="rh-amount"><input class="form-control" type="number" step="0.01" min="0" name="amount" dir="ltr" inputmode="decimal" required><span class="fw-bold text-heading">{{ $priceCurrency }}</span></div></fieldset>
+    <div><label class="form-label">{{ __('Note to the office') }}</label><input class="form-control" name="admin_note" maxlength="500"></div>
+</div>
+<div class="modal-footer"><button class="btn btn-light-secondary" type="button" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn rh-btn-in" type="submit"><x-icon name="check" class="me-1" /> {{ __('Approve and start') }}</button></div>
+</form>
+</x-workspace.drawer>
+</div>
+<div class="rh-money-modal is-out">
+<x-workspace.drawer id="request-reject" :title="__('Reject request')" :description="__('The office sees your reason next to its request.')" icon="ban">
+<form method="post" action="#">@csrf
+<div class="modal-body d-grid gap-3">
+    <div class="rh-modal-subject" data-edit-title></div>
+    <div><label class="form-label">{{ __('Reason') }} <span class="req">*</span></label><textarea class="form-control" name="admin_note" rows="3" maxlength="500" required></textarea></div>
+</div>
+<div class="modal-footer"><button class="btn btn-light-secondary" type="button" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn rh-btn-out" type="submit"><x-icon name="ban" class="me-1" /> {{ __('Reject request') }}</button></div>
+</form>
+</x-workspace.drawer>
+</div>
+<x-workspace.drawer id="promo-prices" :title="__('Prices and payment details')" :description="__('What offices see when they ask for a placement.')" icon="gear" wide>
+<form method="post" action="{{ route('platform.marketplace.prices') }}">@csrf
+<div class="modal-body d-grid gap-4">
+    <fieldset class="rh-field"><legend>{{ __('Prices') }}</legend>
+        <div class="table-responsive"><table class="table align-middle mb-2">
+            <thead><tr><th></th>@foreach (\App\Models\PromotionRequest::DAYS as $days)<th>{{ __(':count days', ['count' => $days]) }}</th>@endforeach</tr></thead>
+            <tbody>@foreach (\App\Models\PromotionRequest::KINDS as $kind)<tr><th class="text-nowrap">{{ __($names[$kind]) }}</th>@foreach (\App\Models\PromotionRequest::DAYS as $days)<td><input class="form-control" type="number" step="0.01" min="0" name="price[{{ $kind }}][{{ $days }}]" value="{{ (float) $prices[$kind][$days] }}" dir="ltr" required aria-label="{{ __($names[$kind]) }} {{ $days }}"></td>@endforeach</tr>@endforeach</tbody>
+        </table></div>
+        <div class="d-flex align-items-center gap-3"><span class="form-label mb-0">{{ __('Currency') }}</span><div class="rh-chips">@foreach (config('rahnuma.currencies') as $c)<label class="rh-chip"><input type="radio" name="currency" value="{{ $c }}" @checked($priceCurrency === $c)><span>{{ $c }}</span></label>@endforeach</div></div>
+    </fieldset>
+    <fieldset class="rh-field"><legend>{{ __('Where offices send the money') }}</legend>
+        <div class="row g-3">@foreach ($methods as $method => $label)<div class="col-12 col-md-6"><label class="form-label">{{ $label }}</label><input class="form-control" name="pay[{{ $method }}]" value="{{ $instructions[$method] }}" maxlength="300" placeholder="{{ __('Account, wallet number or address') }}"></div>@endforeach</div>
+    </fieldset>
+</div>
+<div class="modal-footer"><button class="btn btn-light-secondary" type="button" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary" type="submit"><x-icon name="check" class="me-1" /> {{ __('Save') }}</button></div>
+</form>
+</x-workspace.drawer>
 <x-workspace.drawer id="promote-modal" :title="__('Sell a placement')" :description="__('Days bought while a placement is running are added to its end.')" icon="bullhorn">
 <form method="post" action="{{ route('platform.marketplace.promote') }}">@csrf
 <input type="hidden" name="kind"><input type="hidden" name="property_id"><input type="hidden" name="agency_id">

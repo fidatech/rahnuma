@@ -10,4 +10,6 @@ return [
  'currencies'=>['AFN','USD'],
  'property_types'=>['house','apartment','shop','office','land','warehouse','building','factory','garden','hotel','restaurant','other'],
  'transaction_types'=>['sale','rent','bay_wafa'],
+ // starting prices of a placement for 7, 15 and 30 days, in the base currency; the administrator changes them on the Promotions page
+ 'promotion_prices'=>['sponsored'=>[7=>500,15=>900,30=>1500],'featured'=>[7=>300,15=>500,30=>800]],
 ];

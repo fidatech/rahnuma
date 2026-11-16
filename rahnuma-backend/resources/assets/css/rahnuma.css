@@ -231,6 +231,32 @@ a.rh-list-row:hover strong { color: var(--primary); }
 .rh-modal-subject { padding: 12px 14px; border-radius: 12px; background: var(--primary-soft); color: var(--heading); font-weight: 700; font-size: 13.5px; overflow-wrap: anywhere; }
 .rh-modal-subject:empty { display: none; }
 .rh-scroll { max-height: 520px; overflow-y: auto; padding-inline-end: 4px; }
+.rh-queue { border-top: 4px solid var(--gov-gold); }
+.rh-queue .rh-filter-count { vertical-align: middle; margin-inline-start: 6px; }
+.rh-reviewed { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--muted); }
+.rh-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.rh-price-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.rh-choice, .rh-price { position: relative; display: block; margin: 0; cursor: pointer; }
+.rh-choice input, .rh-price input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.rh-choice > span, .rh-price > span { display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 16px; border: 1.5px solid var(--border); border-radius: 14px; background: var(--card); transition: border-color .15s, background .15s, box-shadow .15s; }
+.rh-choice .fi { font-size: 18px; color: var(--primary); margin-bottom: 4px; }
+.rh-choice strong { font-size: 15px; color: var(--heading); }
+.rh-choice small { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+.rh-price > span { align-items: center; text-align: center; }
+.rh-price em { font-style: normal; font-size: 13px; font-weight: 800; color: var(--gov-gold-ink, var(--primary)); }
+.rh-price strong { font-size: 26px; font-weight: 800; color: var(--heading); letter-spacing: -.4px; font-variant-numeric: tabular-nums; }
+.rh-price strong small { font-size: 13px; font-weight: 700; letter-spacing: 0; }
+.rh-price span > small { font-size: 12px; color: var(--muted); }
+.rh-choice:hover > span, .rh-price:hover > span { border-color: rgba(var(--primary-rgb), .45); }
+.rh-choice input:checked + span, .rh-price input:checked + span { border-color: var(--primary); background: var(--primary-soft); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), .12); }
+.rh-choice input:focus-visible + span, .rh-price input:focus-visible + span { box-shadow: 0 0 0 3px rgba(var(--primary-rgb), .35); }
+.rh-choice [hidden], .rh-price [hidden], .rh-total [hidden], .rh-pay-note[hidden] { display: none !important; }
+.rh-pay-note { display: flex; gap: 9px; align-items: flex-start; margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--hover); border: 1px dashed var(--border); font-size: 13.5px; color: var(--heading); overflow-wrap: anywhere; }
+.rh-pay-note .fi { color: var(--primary); margin-top: 3px; flex: 0 0 auto; }
+.rh-total { display: flex; align-items: baseline; gap: 12px; }
+.rh-total span { font-size: 13px; font-weight: 700; color: var(--muted); }
+.rh-total strong { font-size: 26px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+@media (max-width: 575.98px) { .rh-choice-grid { grid-template-columns: minmax(0, 1fr); } .rh-price strong { font-size: 20px; } .rh-price > span { padding: 12px 8px; } }
 .rh-emblem-preview { height: 56px; width: auto; border-radius: 8px; border: 1px solid var(--border); padding: 4px; background: #fff; }
 @media (max-width: 767.98px) {
     .topbar-market span { display: none; }

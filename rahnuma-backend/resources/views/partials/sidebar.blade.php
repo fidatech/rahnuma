@@ -16,6 +16,7 @@
             ['Requirements & Matching', 'bullseye', route('tenant.requirements.index'), $is('tenant.requirements.*')],
             ['Leads', 'filter', route('tenant.resource.index', 'leads'), $in('leads')],
             ['Visits & Follow-ups', 'calendar-check', route('tenant.resource.index', 'visits'), $in('visits')],
+            ['Sponsor a property', 'bullhorn', route('tenant.promotions.index'), $is('tenant.promotions.*')],
             ['heading' => 'Deals & Finance'],
             ['Sales / Rent / Mortgage', 'handshake', route('tenant.transactions.index'), $is('tenant.transactions.*')],
             ['Payments', 'money-bill-wave', route('tenant.resource.index', 'payments'), $in('payments')],
