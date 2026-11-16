@@ -180,10 +180,43 @@ class MarketplaceController extends Controller
         return response()->json($agencies);
     }
 
-    public function verify(string $code)
+    /** Every Rahnama office that takes part in the marketplace, with a search by name and place. */
+    public function agencies(Request $r)
     {
-        $tx = \App\Models\Transaction::withoutGlobalScopes()->with(['property'])->where('verification_code', $code)->firstOrFail();
-        return view('marketplace.verify', compact('tx'));
+        $agencies = Agency::with('province:id,name_en,name_fa,name_ps')
+            ->where('is_active', 1)
+            ->where('marketplace_enabled', 1)
+            ->withCount(['properties as public_properties_count' => fn ($q) => $q->whereIn('visibility', ['public', 'featured'])->whereIn('status', ['available', 'active'])])
+            ->when($r->filled('q'), fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', '%'.$r->q.'%')->orWhere('address', 'like', '%'.$r->q.'%')->orWhere('license_number', $r->q)))
+            ->when($r->filled('province_id'), fn ($q) => $q->where('province_id', $r->province_id))
+            ->when($r->boolean('verified'), fn ($q) => $q->where('is_verified', 1))
+            ->orderByDesc('is_verified')
+            ->orderByDesc('marketplace_featured')
+            ->orderBy('name')
+            ->paginate(24)
+            ->withQueryString();
+
+        return view('marketplace.agencies', [
+            'agencies' => $agencies,
+            'provinces' => Cache::remember('rahnuma:provinces:list:v2', 3600, fn () => Province::orderBy('name_en')->get(['id','name_en','name_fa','name_ps'])),
+        ]);
+    }
+
+    /**
+     * Check a transaction record by the code printed on it. Without a code: the form.
+     * With a code that matches a recorded deal: the record. Otherwise the form says so.
+     */
+    public function verify(Request $r, ?string $code = null)
+    {
+        $code = strtoupper(trim((string) ($code ?? $r->query('code', ''))));
+        if ($code !== '' && $r->route('code') === null) {
+            return redirect()->route('verify', $code);
+        }
+
+        $tx = $code === '' ? null : \App\Models\Transaction::withoutGlobalScopes()->with(['property'])->where('verification_code', $code)->first();
+        $office = $tx ? Agency::find($tx->agency_id) : null;
+
+        return response()->view('marketplace.verify', ['tx' => $tx, 'code' => $code, 'office' => $office], $code !== '' && ! $tx ? 404 : 200);
     }
 
     private function assertPublicProperty(Property $property): void

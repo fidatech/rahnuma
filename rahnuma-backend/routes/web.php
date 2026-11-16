@@ -13,6 +13,8 @@ Route::get('/rahnama/{agency:slug}',[MarketplaceController::class,'agency'])->na
 Route::get('/nearby-rahnamas',[MarketplaceController::class,'nearby'])->name('marketplace.nearby');
 Route::get('/locations/districts/{province}',[MarketplaceController::class,'districts'])->name('marketplace.districts');
 Route::get('/locations/areas/{district}',[MarketplaceController::class,'areas'])->name('marketplace.areas');
+Route::get('/rahnamas',[MarketplaceController::class,'agencies'])->name('marketplace.agencies');
+Route::get('/verify',[MarketplaceController::class,'verify'])->name('verify.form');
 Route::get('/verify/{code}',[MarketplaceController::class,'verify'])->name('verify');
 Route::get('/login',[AuthController::class,'showLogin'])->name('login');Route::post('/login',[AuthController::class,'login']);Route::post('/logout',[AuthController::class,'logout'])->middleware('auth')->name('logout');Route::get('/locale/{locale}',[AuthController::class,'locale'])->name('locale');
 Route::middleware(['auth','tenant','tenant.access'])->prefix('workspace')->name('tenant.')->group(function(){

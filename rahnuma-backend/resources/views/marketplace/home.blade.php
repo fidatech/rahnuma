@@ -49,7 +49,7 @@
     </div>
 </section>
 
-<section class="rh-section rh-anchor" id="verify">
+<section class="rh-section">
     <div class="rh-section-head"><div><h2>{{ __('Services') }}</h2></div></div>
     <div class="rh-services">
         <a class="rh-service" href="{{ route('marketplace.properties') }}">
@@ -62,8 +62,9 @@
             <span class="rh-service-icon"><x-icon name="shield-halved" /></span>
             <strong>{{ __('Verify a transaction record') }}</strong>
             <span>{{ __('Enter the verification code printed on a transaction record.') }}</span>
-            <form data-native data-verify-url="{{ url('/verify') }}" onsubmit="event.preventDefault();var c=this.code.value.trim();if(c){location.href=this.dataset.verifyUrl+'/'+encodeURIComponent(c);}">
-                <div class="input-group" dir="ltr"><input class="form-control" name="code" required autocomplete="off" aria-label="{{ __('Verification code') }}" placeholder="{{ __('Verification code') }}"><button class="btn btn-primary">{{ __('Verify') }}</button></div>
+            <form class="rh-verify-mini" method="get" action="{{ route('verify.form') }}" data-native>
+                <input class="form-control" name="code" required autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="{{ __('Verification code') }}" placeholder="RHM-XXXXXXXXXXXX">
+                <button class="btn btn-primary">{{ __('Verify') }}</button>
             </form>
         </div>
         <a class="rh-service" href="{{ route('login') }}">
@@ -124,7 +125,7 @@
 @endif
 
 @if($featuredAgencies->isNotEmpty())
-<x-marketplace.section id="rahnamas" class="rh-anchor" :kicker="__('Local experts')" :title="__('Featured Rahnamas')" :text="__('Explore agencies, their public identity and current inventory.')">
+<x-marketplace.section :kicker="__('Local experts')" :title="__('Featured Rahnamas')" :text="__('Explore agencies, their public identity and current inventory.')" :href="route('marketplace.agencies')" :link="__('All Rahnama offices')">
     <div class="row g-3">@foreach($featuredAgencies as $agency)<div class="col-12 col-sm-6 col-lg-4 col-xl-3"><x-marketplace.agency-card :agency="$agency" /></div>@endforeach</div>
 </x-marketplace.section>
 @endif

@@ -1035,5 +1035,18 @@
     "Property code": "د ملکیت کوډ",
     "Official emblem": "رسمي نښان",
     "Open service": "خدمت ته ننوتل",
-    "Remove filter": "فلتر لرې کول"
+    "Remove filter": "فلتر لرې کول",
+    "Every deal a Rahnama office records in Rahnuma gets a verification code. Enter the code printed on the record to see whether it is in the system and what it says.": "هره معامله چې د رهنما یو دفتر یې په رهنما کې ثبتوي د تایید یو کوډ اخلي. پر سند لیکل شوی کوډ دننه کړئ څو وګورئ چې په سیستم کې ثبت دی او څه مشخصات لري.",
+    "No record has this code.": "په دې کوډ هېڅ سند ثبت نه دی.",
+    "Check the code on the document and try again. If it still does not match, the document is not a Rahnuma record.": "پر سند لیکل شوی کوډ وګورئ او بیا هڅه وکړئ. که بیا هم سمون ونه خوري، دا سند په رهنما کې ثبت نه دی.",
+    "This record is in Rahnuma.": "دا سند په رهنما کې ثبت دی.",
+    "Compare the details below with the document in your hand.": "لاندې مشخصات له هغه سند سره پرتله کړئ چې ستاسو په لاس کې دی.",
+    "It confirms that a deal with this code was recorded by a Rahnama office, with its type, amount, property and status.": "دا تاییدوي چې په دې کوډ یوه معامله د رهنما د یوه دفتر له خوا ثبت شوې ده، د هغې له ډول، مبلغ، ملکیت او حالت سره.",
+    "It does not show the names of the buyer, seller, landlord or tenant.": "د پېرودونکي، پلورونکي، مالک یا کرایه‌دار نومونه نه ښيي.",
+    ":count offices on the marketplace.": ":count دفترونه د ملکیت په بازار کې.",
+    "Office name, address or license number": "د دفتر نوم، پته یا د جواز شمېره",
+    "Verified only": "یوازې تایید شوي",
+    "No Rahnama offices found.": "د رهنما هېڅ دفتر ونه موندل شو.",
+    "Try another name or province.": "بل نوم یا ولایت وازمویئ.",
+    "All Rahnama offices": "د رهنما ټول دفترونه"
 }

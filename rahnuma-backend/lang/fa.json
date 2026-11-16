@@ -1035,5 +1035,18 @@
     "Property code": "کد ملکیت",
     "Official emblem": "نشان رسمی",
     "Open service": "ورود به خدمت",
-    "Remove filter": "حذف فلتر"
+    "Remove filter": "حذف فلتر",
+    "Every deal a Rahnama office records in Rahnuma gets a verification code. Enter the code printed on the record to see whether it is in the system and what it says.": "هر معامله‌ای که یک دفتر رهنما در رهنما ثبت می‌کند یک کد تأیید می‌گیرد. کد درج‌شده روی سند را وارد کنید تا ببینید آیا در سیستم ثبت است و چه مشخصاتی دارد.",
+    "No record has this code.": "هیچ سندی با این کد ثبت نیست.",
+    "Check the code on the document and try again. If it still does not match, the document is not a Rahnuma record.": "کد روی سند را بررسی و دوباره امتحان کنید. اگر باز هم مطابقت نداشت، این سند در رهنما ثبت نیست.",
+    "This record is in Rahnuma.": "این سند در رهنما ثبت است.",
+    "Compare the details below with the document in your hand.": "مشخصات زیر را با سندی که در دست دارید مقایسه کنید.",
+    "It confirms that a deal with this code was recorded by a Rahnama office, with its type, amount, property and status.": "تأیید می‌کند که معامله‌ای با این کد توسط یک دفتر رهنما ثبت شده است، همراه با نوع، مبلغ، ملکیت و وضعیت آن.",
+    "It does not show the names of the buyer, seller, landlord or tenant.": "نام خریدار، فروشنده، مالک یا کرایه‌نشین را نشان نمی‌دهد.",
+    ":count offices on the marketplace.": ":count دفتر در بازار ملکیت.",
+    "Office name, address or license number": "نام دفتر، آدرس یا نمبر جواز",
+    "Verified only": "فقط تأییدشده",
+    "No Rahnama offices found.": "هیچ دفتر رهنمایی پیدا نشد.",
+    "Try another name or province.": "نام یا ولایت دیگری را امتحان کنید.",
+    "All Rahnama offices": "همه دفاتر رهنما"
 }

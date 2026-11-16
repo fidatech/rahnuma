@@ -36,8 +36,8 @@
             <nav class="site-nav">
                 <a class="{{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">{{ __('Home') }}</a>
                 <a class="{{ request()->routeIs('marketplace.properties', 'marketplace.property') ? 'active' : '' }}" href="{{ route('marketplace.properties') }}">{{ __('Properties') }}</a>
-                <a class="{{ request()->routeIs('marketplace.agency') ? 'active' : '' }}" href="{{ route('home') }}#rahnamas" data-native>{{ __('Rahnama offices') }}</a>
-                <a class="{{ request()->routeIs('verify') ? 'active' : '' }}" href="{{ route('home') }}#verify" data-native>{{ __('Verify a record') }}</a>
+                <a class="{{ request()->routeIs('marketplace.agencies', 'marketplace.agency') ? 'active' : '' }}" href="{{ route('marketplace.agencies') }}">{{ __('Rahnama offices') }}</a>
+                <a class="{{ request()->routeIs('verify', 'verify.form') ? 'active' : '' }}" href="{{ route('verify.form') }}">{{ __('Verify a record') }}</a>
                 @auth
                     @if (auth()->user()->agency_id)<a href="{{ route('tenant.dashboard') }}">{{ __('Workspace') }}</a>@endif
                     @if (auth()->user()->isPlatformAdmin())<a href="{{ route('platform.dashboard') }}">{{ __('Platform') }}</a>@endif
@@ -81,6 +81,7 @@
             <div>
                 <h3>{{ __('Marketplace') }}</h3>
                 <a href="{{ route('marketplace.properties') }}">{{ __('Search properties') }}</a>
+                <a href="{{ route('marketplace.agencies') }}">{{ __('Rahnama offices') }}</a>
                 <a href="{{ route('marketplace.properties', ['transaction_type' => 'sale']) }}">{{ deal_label('sale', true) }}</a>
                 <a href="{{ route('marketplace.properties', ['transaction_type' => 'rent']) }}">{{ deal_label('rent', true) }}</a>
                 <a href="{{ route('marketplace.properties', ['transaction_type' => 'bay_wafa']) }}">{{ deal_label('bay_wafa', true) }}</a>
@@ -89,7 +90,7 @@
                 <h3>{{ __('For offices and authorities') }}</h3>
                 <a href="{{ route('login') }}">{{ __('Rahnama office workspace') }}</a>
                 <a href="{{ route('login') }}">{{ __('Regulatory workspace') }}</a>
-                <a href="{{ route('home') }}#verify" data-native>{{ __('Verify a transaction record') }}</a>
+                <a href="{{ route('verify.form') }}">{{ __('Verify a transaction record') }}</a>
             </div>
             @if (array_filter((array) config('rahnuma.contact')))
             <div>
