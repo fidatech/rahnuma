@@ -112,21 +112,45 @@ form.is-submitting { opacity: .65; pointer-events: none; }
 .brand-logo-uploader, .profile-avatar-uploader { overflow: hidden; }
 .brand-logo-uploader img, .profile-avatar-uploader img { width: 100%; height: 100%; object-fit: cover; }
 
-/* --------------------------------------------------------------- public site */
 /*
- | The public site and the sign-in page wear a formal palette: navy and a deep blue with a
- | gold accent, in the manner of a government service site. It is set by re-pointing the
- | colour variables of the template, so every button, link and badge follows.
+ | Rahnuma wears one formal palette everywhere, the public site and the three workspaces:
+ | navy and a deep blue with a gold accent, in the manner of a government service site. It is
+ | set by re-pointing the colour variables of the template, so every button, link and badge
+ | follows.
  */
-.public-body, .auth-body {
+:root {
     --gov-navy: #0a1f3d; --gov-navy-2: #10305c; --gov-gold: #c9a227; --gov-gold-2: #e3c04f; --gov-gold-ink: #7a5f08;
     --primary: #0c3b7a; --primary-rgb: 12, 59, 122; --primary-600: #0a3166; --primary-soft: #e6eef8;
     --brand-from: #1b4e96; --brand-to: #0a1f3d;
 }
-[data-bs-theme="dark"] .public-body, [data-bs-theme="dark"] .auth-body {
+[data-bs-theme="dark"] {
     --primary: #3f7fd9; --primary-rgb: 63, 127, 217; --primary-600: #3470c6; --primary-soft: rgba(63, 127, 217, .16);
     --gov-gold-ink: #e3c04f;
 }
+
+/* ------------------------------------------------------------- the workspaces */
+/* navy sidebar with the fine gold lattice of the public hero; the open page is marked in gold */
+.app-sidebar {
+    --sidebar-bg: repeating-linear-gradient(45deg, rgba(227, 192, 79, .05) 0 1.5px, transparent 1.5px 46px), repeating-linear-gradient(-45deg, rgba(227, 192, 79, .05) 0 1.5px, transparent 1.5px 46px), linear-gradient(180deg, #10305c, #0a1f3d 60%);
+    --sidebar-border: transparent; --sidebar-text: #d2dbea; --sidebar-muted: #8fa0bb;
+    --sidebar-hover: rgba(255, 255, 255, .08); --sidebar-active-bg: rgba(227, 192, 79, .16); --sidebar-active: #f0d27a;
+}
+.app-sidebar .brand-text, .app-sidebar .brand-link { color: #fff; }
+.app-sidebar .brand-text small { color: #8fa0bb; }
+.sidebar-brand { border-bottom: 1px solid rgba(255, 255, 255, .08); }
+.app-sidebar .menu-item.active > .menu-link { box-shadow: inset 3px 0 0 var(--gov-gold-2); }
+[dir="rtl"] .app-sidebar .menu-item.active > .menu-link { box-shadow: inset -3px 0 0 var(--gov-gold-2); }
+.app-sidebar .menu-link:hover, .app-sidebar .menu-sublink:hover { color: #fff; }
+.app-sidebar .menu-link:hover .menu-icon { color: #fff; }
+.app-sidebar .menu-item.active > .menu-link .menu-icon { color: var(--gov-gold-2); }
+.sidebar-help { background: rgba(255, 255, 255, .06); border-color: rgba(227, 192, 79, .3); color: #d2dbea; }
+.sidebar-help h6, .sidebar-help strong { color: #fff; }
+.sidebar-help .sh-icon { background: var(--gov-gold-2); color: #2a1e03; }
+.sidebar-scroll { scrollbar-color: rgba(255, 255, 255, .2) transparent; }
+.app-topbar { border-bottom: 3px solid var(--gov-gold); }
+.app-main .page-header { border-inline-start: 4px solid var(--gov-gold); }
+
+/* --------------------------------------------------------------- public site */
 .public-body { background: var(--bg); min-height: 100vh; }
 .btn-gold { --bs-btn-color: #2a1e03; --bs-btn-bg: var(--gov-gold-2); --bs-btn-border-color: var(--gov-gold-2); --bs-btn-hover-color: #2a1e03; --bs-btn-hover-bg: #edd06f; --bs-btn-hover-border-color: #edd06f; --bs-btn-active-color: #2a1e03; --bs-btn-active-bg: var(--gov-gold); --bs-btn-active-border-color: var(--gov-gold); font-weight: 800; }
 
