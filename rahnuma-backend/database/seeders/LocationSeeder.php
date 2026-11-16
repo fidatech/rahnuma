@@ -7,8 +7,8 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * Real reference data: the 34 provinces of Afghanistan, and the districts and neighbourhoods
- * of the five largest cities. Part of DatabaseSeeder, so it is installed on the live server.
+ * Real reference data: the 34 provinces of Afghanistan, the districts and neighbourhoods of
+ * the five largest cities, and the capital of every other province. Part of DatabaseSeeder, so it is installed on the live server.
  *
  * Safe to run again: existing rows are kept and only missing ones are added.
  */
@@ -137,6 +137,27 @@ class LocationSeeder extends Seeder
                     Area::firstOrCreate(['district_id' => $district->id, 'name_en' => $areaEn], ['name_fa' => $areaFa, 'name_ps' => $areaPs, 'latitude' => $lat, 'longitude' => $lng]);
                 }
             }
+        }
+
+        // The capital of every other province, with its centre, so a property can be placed in any province.
+        // province code => [capital in English, Dari, Pashto]
+        $capitals = [
+            'BDS' => ['Fayzabad', 'فیض‌آباد', 'فیض اباد'], 'BDG' => ['Qala-e-Naw', 'قلعه نو', 'قلعه نو'], 'BGL' => ['Pul-e-Khumri', 'پلخمری', 'پلخمري'],
+            'BAM' => ['Bamyan City', 'شهر بامیان', 'بامیان ښار'], 'DAY' => ['Nili', 'نیلی', 'نیلي'], 'FRA' => ['Farah City', 'شهر فراه', 'فراه ښار'],
+            'FYB' => ['Maymana', 'میمنه', 'میمنه'], 'GHA' => ['Ghazni City', 'شهر غزنی', 'غزني ښار'], 'GHO' => ['Firozkoh', 'فیروزکوه', 'فیروزکوه'],
+            'HEL' => ['Lashkar Gah', 'لشکرگاه', 'لښکرګاه'], 'JOW' => ['Sheberghan', 'شبرغان', 'شبرغان'], 'KAP' => ['Mahmud-e-Raqi', 'محمود راقی', 'محمود راقي'],
+            'KHO' => ['Khost City', 'شهر خوست', 'خوست ښار'], 'KNR' => ['Asadabad', 'اسعدآباد', 'اسعد اباد'], 'KDZ' => ['Kunduz City', 'شهر کندز', 'کندز ښار'],
+            'LAG' => ['Mehtarlam', 'مهترلام', 'مهترلام'], 'LOG' => ['Pul-e-Alam', 'پل علم', 'پل علم'], 'NIM' => ['Zaranj', 'زرنج', 'زرنج'],
+            'NUR' => ['Parun', 'پارون', 'پارون'], 'PIA' => ['Gardez', 'گردیز', 'ګردېز'], 'PKA' => ['Sharana', 'شرنه', 'ښرنه'],
+            'PAN' => ['Bazarak', 'بازارک', 'بازارک'], 'PAR' => ['Charikar', 'چاریکار', 'چاریکار'], 'SAM' => ['Aybak', 'ایبک', 'ایبک'],
+            'SAR' => ['Sar-e-Pul City', 'شهر سرپل', 'سرپل ښار'], 'TAK' => ['Taloqan', 'تالقان', 'تالقان'], 'URU' => ['Tarinkot', 'ترینکوت', 'ترینکوټ'],
+            'WAR' => ['Maidan Shahr', 'میدان شهر', 'میدان ښار'], 'ZAB' => ['Qalat', 'قلات', 'قلات'],
+        ];
+        $coordinates = array_column($provinces, null, 3);
+        foreach ($capitals as $provinceCode => [$en, $fa, $ps]) {
+            [, , , , $lat, $lng] = $coordinates[$provinceCode];
+            $district = District::firstOrCreate(['province_id' => $ids[$provinceCode], 'code' => $provinceCode.'-CTY'], ['name_en' => $en, 'name_fa' => $fa, 'name_ps' => $ps, 'latitude' => $lat, 'longitude' => $lng]);
+            Area::firstOrCreate(['district_id' => $district->id, 'name_en' => $en.' Centre'], ['name_fa' => 'مرکز '.$fa, 'name_ps' => 'د '.$ps.' مرکز', 'latitude' => $lat, 'longitude' => $lng]);
         }
 
         Cache::forget('rahnuma:provinces:list');

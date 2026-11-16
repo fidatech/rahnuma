@@ -22,7 +22,7 @@ No migration and no Composer or Node step is needed. Change the look in `resourc
 ## Seed data
 
 `php artisan migrate --seed` installs only what a real installation needs: the subscription plans,
-the 34 provinces with the districts and neighbourhoods of the five largest cities, and the platform
+the 34 provinces with their capitals and the districts and neighbourhoods of the five largest cities, and the platform
 administrator (`admin@rahnuma.af`, password `ChangeMe123!` — change it after the first sign-in).
 Use exactly this on the live server.
 
@@ -32,8 +32,11 @@ Sample data is separate and is never run by the command above:
 php artisan db:seed --class=DemoSeeder
 ```
 
-It adds 20 Rahnama offices in Kabul, Herat, Mazar-e-Sharif, Kandahar and Jalalabad with 100 properties,
-landlords, customers and leads, and the demo sign-ins `demo@rahnuma.af`, `government@rahnuma.af` and
+It adds 20 Rahnama offices in Kabul, Herat, Mazar-e-Sharif, Kandahar and Jalalabad with 100 properties
+(at least one in each of the 34 provinces), landlords, customers and leads. Each property gets three photos
+downloaded from loremflickr.com (Creative Commons photos from Flickr, for demo use only; needs a connection
+and `php artisan storage:link`). `php artisan db:seed --class=DemoPhotoSeeder` adds photos later to demo
+properties that have none. The demo sign-ins are `demo@rahnuma.af`, `government@rahnuma.af` and
 `inspector@rahnuma.af` (password `ChangeMe123!`). It refuses to run when `APP_ENV=production`.
 
 The notes below describe the earlier V2 to V8 releases.

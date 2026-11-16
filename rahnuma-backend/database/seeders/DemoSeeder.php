@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Hash;
  *     php artisan db:seed --class=DemoSeeder
  *
  * It adds 20 Rahnama offices in Kabul, Herat, Mazar-e-Sharif, Kandahar and Jalalabad, each with
- * an owner sign-in, 3 landlords and 5 properties (100 properties), plus customers, requirements
+ * an owner sign-in, 3 landlords and 5 properties (100 properties, at least one in each of the
+ * 34 provinces, each with photos downloaded by DemoPhotoSeeder), plus customers, requirements
  * and leads for "Demo Rahnama", and two demo sign-ins for the regulatory workspace.
  *
  * Every demo sign-in uses the password ChangeMe123!
@@ -99,6 +100,13 @@ class DemoSeeder extends Seeder
         }
 
         $accounting = app(AccountingService::class);
+        // the centre of the capital of every province that has no demo office
+        $cities = array_unique(array_column(self::AGENCIES, 3));
+        $elsewhere = Area::whereIn('district_id', District::whereIn('province_id', Province::whereNotIn('code', $cities)->pluck('id'))->pluck('id'))->orderBy('id')->get();
+        if ($elsewhere->isEmpty()) {
+            $this->call(LocationSeeder::class);
+            $elsewhere = Area::whereIn('district_id', District::whereIn('province_id', Province::whereNotIn('code', $cities)->pluck('id'))->pluck('id'))->orderBy('id')->get();
+        }
         $propertyCount = 0;
 
         foreach (self::AGENCIES as $index => [$name, $slug, $tagline, $provinceCode, $plan, $verified, $featured]) {
@@ -153,9 +161,11 @@ class DemoSeeder extends Seeder
                 );
             }
 
-            // five properties of the office, spread over the neighbourhoods of its city
+            // five properties of the office: three in the neighbourhoods of its own city and two in
+            // other provinces, so that together the offices have a property in every province
             for ($p = 0; $p < 5; $p++) {
-                $propertyCount += $this->property($agency, $owners[$p % 3], $province, $areas[($index + $p * 2) % $areas->count()], $index, $p) ? 1 : 0;
+                $area = $p < 3 ? $areas[($index + $p * 2) % $areas->count()] : $elsewhere[($index * 2 + $p - 3) % $elsewhere->count()];
+                $propertyCount += $this->property($agency, $owners[$p % 3], $area, $index, $p) ? 1 : 0;
             }
 
             if ($slug === 'demo-rahnama') {
@@ -163,13 +173,17 @@ class DemoSeeder extends Seeder
             }
         }
 
+        // photos from the internet for every demo property (needs a connection; skipped quietly without one)
+        $this->call(DemoPhotoSeeder::class);
+
         Cache::forget('rahnuma:marketplace:home:v8');
         $this->command?->info('Demo data ready: '.count(self::AGENCIES).' offices, '.$propertyCount.' new properties. Sign in with demo@rahnuma.af / '.self::PASSWORD);
     }
 
     /** One sample property. Returns false when it was already there. */
-    private function property(Agency $agency, Owner $owner, Province $province, Area $area, int $index, int $p): bool
+    private function property(Agency $agency, Owner $owner, Area $area, int $index, int $p): bool
     {
+        $province = Province::findOrFail(District::findOrFail($area->district_id)->province_id);
         $code = sprintf('DM-%02d%02d', $index + 1, $p + 1);
         if (Property::withoutGlobalScopes()->where('agency_id', $agency->id)->where('code', $code)->exists()) {
             return false;
