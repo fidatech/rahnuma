@@ -15,6 +15,13 @@
 
     <div class="topbar-right">
         <a class="topbar-market" href="{{ route('home') }}" data-native title="{{ __('Property marketplace') }}"><x-icon name="store" /><span>{{ __('Marketplace') }}</span></a>
+        @if ($user->isPlatformAdmin())
+            @if ($shell === 'government')
+                <a class="topbar-market is-gold" href="{{ route('platform.dashboard') }}" data-native title="{{ __('Platform administration') }}"><x-icon name="server" /><span>{{ __('Platform') }}</span></a>
+            @else
+                <a class="topbar-market is-gold" href="{{ route('government.dashboard') }}" data-native title="{{ __('Regulatory panel') }}"><x-icon name="landmark" /><span>{{ __('Regulatory panel') }}</span></a>
+            @endif
+        @endif
         @include('partials.language-menu')
 
         <button class="topbar-icon" type="button" data-theme-toggle title="{{ __('Light / dark mode') }}"><x-icon name="moon" /></button>
@@ -33,7 +40,9 @@
                     <li><a class="dropdown-item" href="{{ route('tenant.settings.edit') }}#security" @if ($shell !== 'workspace') data-native @endif><x-icon name="key" /> {{ __('Change Password') }}</a></li>
                 @endif
                 @if ($user->isPlatformAdmin())
-                    <li><a class="dropdown-item" href="{{ route('platform.dashboard') }}" @if ($shell !== 'platform') data-native @endif><x-icon name="server" /> {{ __('Platform') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ route('platform.dashboard') }}" @if ($shell !== 'platform') data-native @endif><x-icon name="gauge-high" /> {{ __('Platform') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ route('platform.account') }}" @if ($shell !== 'platform') data-native @endif><x-icon name="id-badge" /> {{ __('My account') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ route('platform.system') }}" @if ($shell !== 'platform') data-native @endif><x-icon name="server" /> {{ __('System status') }}</a></li>
                 @endif
                 @if ($user->isGovernment())
                     <li><a class="dropdown-item" href="{{ route('government.dashboard') }}" @if ($shell !== 'government') data-native @endif><x-icon name="landmark" /> {{ __('Regulatory') }}</a></li>

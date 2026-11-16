@@ -200,6 +200,8 @@ a.rh-list-row:hover strong { color: var(--primary); }
 .rh-money-row .is-net { background: var(--primary-soft); }
 .topbar-market { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 10px; background: var(--primary-soft); color: var(--primary); font-size: 13px; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .topbar-market:hover { background: var(--primary); color: #fff; }
+.topbar-market.is-gold { background: rgba(201, 162, 39, .16); color: var(--gov-gold-ink); border: 1px solid rgba(201, 162, 39, .45); }
+.topbar-market.is-gold:hover { background: var(--gov-gold-2); border-color: var(--gov-gold-2); color: #2a1e03; }
 .rh-btn-in { --bs-btn-color: #fff; --bs-btn-bg: #15803d; --bs-btn-border-color: #15803d; --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #126c34; --bs-btn-hover-border-color: #126c34; --bs-btn-active-color: #fff; --bs-btn-active-bg: #126c34; --bs-btn-active-border-color: #126c34; font-weight: 800; }
 .rh-btn-out { --bs-btn-color: #fff; --bs-btn-bg: #c62828; --bs-btn-border-color: #c62828; --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #a72020; --bs-btn-hover-border-color: #a72020; --bs-btn-active-color: #fff; --bs-btn-active-bg: #a72020; --bs-btn-active-border-color: #a72020; font-weight: 800; }
 .rh-money-net { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; }

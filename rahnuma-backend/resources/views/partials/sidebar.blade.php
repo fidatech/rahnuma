@@ -46,10 +46,6 @@
             ['Locations', 'map-location-dot', route('platform.locations'), $is('platform.locations')],
             ['Audit log', 'clipboard-check', route('platform.audit'), $is('platform.audit')],
             ['Settings', 'gear', route('platform.settings'), $is('platform.settings')],
-            ['System status', 'server', route('platform.system'), $is('platform.system')],
-            ['My account', 'id-badge', route('platform.account'), $is('platform.account')],
-            ['heading' => 'Other panels'],
-            ['Regulatory panel', 'landmark', route('government.dashboard'), false],
         ],
         'government' => [
             ['heading' => 'Regulatory'],
@@ -58,7 +54,6 @@
             ['Setta Inventory', 'book', route('government.setta'), $is('government.setta')],
             ['Inspections', 'clipboard-check', route('government.inspections'), $is('government.inspections')],
             ['Violations', 'triangle-exclamation', route('government.violations'), $is('government.violations')],
-            ...($user->isPlatformAdmin() ? [['heading' => 'Other panels'], ['Platform administration', 'server', route('platform.dashboard'), false]] : []),
         ],
     ];
     $brandName = $shell === 'workspace' ? ($agency?->name ?: config('app.name')) : config('app.name');
